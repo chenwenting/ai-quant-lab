@@ -122,6 +122,10 @@ body{font-family:-apple-system,"Microsoft YaHei","SimHei",sans-serif;background:
 .modal-tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
 .modal-panels .modal-panel{display:none;padding:10px 4px}
 .modal-panels .modal-panel.active{display:block}
+.modal-stocks{display:flex;gap:6px;padding:8px 18px;background:var(--bg);flex-wrap:wrap}
+.modal-sbtn{padding:3px 10px;border:1px solid var(--border);border-radius:5px;background:var(--card);cursor:pointer;font-size:11px;transition:.15s}
+.modal-sbtn:hover{border-color:var(--accent);color:var(--accent)}
+.modal-sbtn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -270,6 +274,7 @@ body{font-family:-apple-system,"Microsoft YaHei","SimHei",sans-serif;background:
       <span>📋 分析报告 — <span id="rptTitle">选择股票</span></span>
       <button class="modal-close" onclick="closeReport()">×</button>
     </div>
+    <div class="modal-stocks" id="modalStocks"></div>
     <div class="modal-tabs">
       <div class="modal-tab active" onclick="switchRptTab('tech')">📈 技术指标分析</div>
       <div class="modal-tab" onclick="switchRptTab('fund')">🏢 基本面概况</div>
@@ -370,8 +375,48 @@ function resetAll(){['macd','rsi','bb','atr'].forEach(resetOne);}
 function exportPNG(){['chartMacd','chartRsi','chartBb','chartAtr'].forEach(id=>Plotly.downloadImage(id,{format:'png',width:1000,height:350,filename:`indicator_${id.replace('chart','')}`}));setTimeout(()=>alert('4张图表已下载'),300);}
 
 // ===== Report Modal =====
-function openReport(){if(!currentData){alert('请先加载数据');return}updateReport();document.getElementById('rptOverlay').classList.add('active');document.getElementById('rptTitle').textContent=(currentData.name||'')+' ('+currentData.code+')';}
-function closeReport(){document.getElementById('rptOverlay').classList.remove('active');}
+let rptData=null;
+
+function openReport(){
+  if(!currentData){alert('请先加载数据');return}
+  rptData=currentData;
+  buildRptBtns();
+  updateRptAll();
+  document.getElementById('rptOverlay').classList.add('active');
+  document.getElementById('rptTitle').textContent=(currentData.name||'')+' ('+currentData.code+')';
+}
+
+function closeReport(){
+  document.getElementById('rptOverlay').classList.remove('active');
+}
+
+function buildRptBtns(){
+  const el=document.getElementById('modalStocks');
+  el.innerHTML='';
+  for(const[code,info]of Object.entries(EMBEDDED_DATA)){
+    const btn=document.createElement('button');
+    btn.className='modal-sbtn';
+    if(code===currentData.code)btn.classList.add('active');
+    btn.textContent=`${code} ${info.name}`;
+    btn.onclick=()=>switchRptStock(code);
+    el.appendChild(btn);
+  }
+}
+
+function switchRptStock(code){
+  const info=EMBEDDED_DATA[code];if(!info)return;
+  rptData={...parseEmbedded(info.data),name:info.name,code};
+  document.querySelectorAll('.modal-sbtn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('rptTitle').textContent=info.name+' ('+code+')';
+  updateRptAll();
+}
+
+function updateRptAll(){
+  if(!rptData||!rptData.dates.length)return;
+  updateTechReport();
+  updateFundReport();
+}
 
 function switchRptTab(tab){
   document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
@@ -381,13 +426,11 @@ function switchRptTab(tab){
 }
 
 function updateReport(){
-  if(!currentData||!currentData.dates.length)return;
-  updateTechReport();
-  updateFundReport();
+  updateRptAll();
 }
 
 function updateTechReport(){
-  const d=currentData,el=document.getElementById('rptTechModal');
+  const d=rptData||currentData,el=document.getElementById('rptTechModal');
   if(!el)return;
   const c=d.close,n=d.close.length;
   const last=c[n-1],first=c[0],cRet=((last/first-1)*100).toFixed(2);
@@ -425,7 +468,7 @@ function updateTechReport(){
 
   el.innerHTML=`<h4>📊 数据概览</h4>
     <table class="rpt-table">
-      <tr><td>股票名称</td><td>${currentData.name||''} (${currentData.code||''})</td></tr>
+      <tr><td>股票名称</td><td>${d.name||''} (${d.code||''})</td></tr>
       <tr><td>数据范围</td><td>${d.dates[0]} ~ ${d.dates[d.dates.length-1]}</td></tr>
       <tr><td>交易日数</td><td>${n} 条</td></tr>
       <tr><td>收盘均价</td><td>¥${avg}</td></tr>
@@ -444,14 +487,15 @@ function updateTechReport(){
       <tr><td>ATR(${params.atr.n})</td><td>最新${lastAtr}元 均值${avgAtr}元</td></tr>
     </table>
     <h4>💡 综合解读</h4>
-    <p style="margin-bottom:6px">${currentData.name}在近${Math.ceil(n/242*12)}个月中，股价${cRet>=0?'上涨':'下跌'}${Math.abs(parseFloat(cRet))}%。当前MACD指标${macdCls==='bullish'?'处于多头趋势':'处于空头趋势'}，RSI位于${rsiState}，布林带带宽率${bbRate}%反映市场${parseFloat(bbRate)>20?'波动较大':'波动适中'}。技术面综合判断：${macdCls==='bullish'&&rsiCls!=='bearish'?'偏多':'偏空'}，建议结合基本面和市场环境综合决策。</p>
+    <p style="margin-bottom:6px">${d.name||''}在近${Math.ceil(n/242*12)}个月中，股价${cRet>=0?'上涨':'下跌'}${Math.abs(parseFloat(cRet))}%。当前MACD指标${macdCls==='bullish'?'处于多头趋势':'处于空头趋势'}，RSI位于${rsiState}，布林带带宽率${bbRate}%反映市场${parseFloat(bbRate)>20?'波动较大':'波动适中'}。技术面综合判断：${macdCls==='bullish'&&rsiCls!=='bearish'?'偏多':'偏空'}，建议结合基本面和市场环境综合决策。</p>
     <p style="font-size:11px;color:var(--sub)">⚠ 以上为基于历史数据的量化指标分析，不构成投资建议。</p>`;
 }
 
 function updateFundReport(){
   const el=document.getElementById('rptFundModal');
-  if(!el||!currentData||!currentData.code)return;
-  const f=_FUND[currentData.code];
+  const d=rptData||currentData;
+  if(!el||!d||!d.code)return;
+  const f=_FUND[d.code];
   if(!f){el.innerHTML='<p style="color:var(--sub)">暂无该股票的基本面数据</p>';return;}
   el.innerHTML=`<h4>🏢 公司简介</h4><p>${f.desc||'暂无'}</p>
     <h4>📋 基本信息</h4>
@@ -473,11 +517,11 @@ function updateFundReport(){
     <p style="font-size:11px;color:var(--sub)">⚠ 估值数据来源：tushare/公开市场数据，仅供参考，不构成投资建议。</p>`;
 }
 
-// Trigger report update on stock load
+// Sync rptData when main page stock changes
 const _origLoadEmbedded=loadEmbedded;
 loadEmbedded=function(code){
   _origLoadEmbedded(code);
-  updateReport();
+  rptData=currentData;
 };
 </script>
 </body>
