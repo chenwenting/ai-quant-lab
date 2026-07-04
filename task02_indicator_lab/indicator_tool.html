@@ -15,7 +15,7 @@
 body{font-family:-apple-system,"Microsoft YaHei","SimHei",sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
 /* Top bar */
-.top-bar{height:44px;background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;display:flex;align-items:center;padding:0 14px;font-size:13px;gap:10px;flex-shrink:0;z-index:10}
+.top-bar{height:40px;background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;display:flex;align-items:center;padding:0 14px;font-size:13px;gap:10px;flex-shrink:0;z-index:10}
 .top-bar .brand{font-weight:700;font-size:15px}
 .top-bar .brand span{color:var(--accent)}
 .top-bar .sep{color:rgba(255,255,255,.2)}
@@ -28,11 +28,21 @@ body{font-family:-apple-system,"Microsoft YaHei","SimHei",sans-serif;background:
 .upload-top:hover{color:#fff;border-color:rgba(255,255,255,.6)}
 .upload-top.loaded{color:#27ae60;border-color:#27ae60;border-style:solid}
 
+/* Stock info card */
+.info-card{background:var(--card);border:1px solid var(--border);border-radius:8px;margin:0 8px 8px;padding:12px 16px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.info-card .item{display:flex;flex-direction:column;gap:2px}
+.info-card .item .label{font-size:11px;color:var(--sub)}
+.info-card .item .val{font-size:18px;font-weight:700;color:var(--text)}
+.info-card .item .val.up{color:var(--up)}
+.info-card .item .val.down{color:var(--down)}
+.info-card .item .sub{font-size:11px;color:var(--sub)}
+.info-card .range{font-size:12px;color:var(--sub);margin-left:auto}
+
 /* Main scroll area */
-.main{flex:1;overflow-y:auto;padding:8px}
+.main{flex:1;overflow-y:auto;padding:8px;padding-top:0}
 
 /* Indicator row */
-.ind-row{display:flex;gap:8px;margin-bottom:8px;min-height:280px}
+.ind-row{display:flex;gap:8px;margin-bottom:8px;min-height:300px}
 .ind-row:last-child{margin-bottom:0}
 
 /* Config panel (left side of each row) */
@@ -82,6 +92,26 @@ body{font-family:-apple-system,"Microsoft YaHei","SimHei",sans-serif;background:
   <div class="stock-row" id="stockBtns"></div>
   <input type="file" id="fileInput" accept=".csv" style="display:none" onchange="handleFileUpload(event)">
   <div class="upload-top" onclick="document.getElementById('fileInput').click()" id="uploadBox">📁 上传CSV</div>
+</div>
+
+<!-- Stock info card -->
+<div class="info-card" id="stockInfo" style="display:none">
+  <div class="item">
+    <span class="label">收盘价</span>
+    <span class="val" id="infoPrice">--</span>
+  </div>
+  <div class="item">
+    <span class="label">涨跌幅</span>
+    <span class="val" id="infoChange">--</span>
+  </div>
+  <div class="item">
+    <span class="label">数据范围</span>
+    <span class="sub" id="infoRange">--</span>
+  </div>
+  <div class="item" style="margin-left:auto">
+    <span class="label">总数据</span>
+    <span class="sub" id="infoCount">-- 条</span>
+  </div>
 </div>
 
 <div class="main">
@@ -222,7 +252,7 @@ function calcBB(c,n,k){const m=sma(c,n),s=stdv(c,n,m);return{mid:m,upper:m.map((
 function calcRSI(c,n){const r=new Array(c.length).fill(null);let ag=0,al=0;for(let i=1;i<=n;i++){const d=c[i]-c[i-1];if(d>0)ag+=d;else al-=d}r[n]=100-100/(1+ag/(al||1e-4));for(let i=n+1;i<c.length;i++){const d=c[i]-c[i-1];ag=(ag*(n-1)+(d>0?d:0))/n;al=(al*(n-1)+(d<0?-d:0))/n;r[i]=100-100/(1+ag/(al||1e-4))}return r}
 function calcATR(h,l,c,n){const tr=[0];for(let i=1;i<c.length;i++)tr.push(Math.max(h[i]-l[i],Math.abs(h[i]-c[i-1]),Math.abs(l[i]-c[i-1])));const a=sma(tr,n);return{tr,atr:a,atrPct:a.map((v,i)=>(v!=null)?v/c[i]*100:null)}}
 
-const BL=m=>({margin:{t:22,l:38,r:10,b:20},plot_bgcolor:'#fff',paper_bgcolor:'#fff',xaxis:{gridcolor:'#f0f0f0',showticklabels:false},yaxis:{gridcolor:'#f0f0f0'},showlegend:false,height:m||240,font:{family:'Microsoft YaHei, sans-serif',size:9},dragmode:'pan'});
+const BL=m=>({margin:{t:22,l:38,r:10,b:32},plot_bgcolor:'#fff',paper_bgcolor:'#fff',xaxis:{gridcolor:'#f0f0f0',showticklabels:true,tickfont:{size:8},tickangle:30,nticks:6},yaxis:{gridcolor:'#f0f0f0'},showlegend:false,height:m||260,font:{family:'Microsoft YaHei, sans-serif',size:9},dragmode:'pan'});
 
 function renderMACD(d,p){
   const{dif,dea,hist}=calcMACD(d.close,p.fast,p.slow,p.sig);
@@ -239,7 +269,23 @@ function renderATR(d,p){const{atr,atrPct}=calcATR(d.high,d.low,d.close,p.n);Plot
 
 function countSignals(d){const{dif,dea}=calcMACD(d.close,params.macd.fast,params.macd.slow,params.macd.sig);const rsi=calcRSI(d.close,params.rsi.n);let gc=0,dc=0,ob=0,os=0;for(let i=1;i<dif.length;i++){if(dif[i]!=null&&dea[i]!=null&&dif[i-1]!=null&&dea[i-1]!=null){if(dif[i-1]<=dea[i-1]&&dif[i]>dea[i])gc++;if(dif[i-1]>=dea[i-1]&&dif[i]<dea[i])dc++;}if(rsi[i]!=null){if(rsi[i]>params.rsi.ob)ob++;if(rsi[i]<params.rsi.os)os++;}}return{gc,dc,ob,os};}
 
-function renderAll(){if(!currentData)return;const d=currentData;renderMACD(d,params.macd);renderRSI(d,params.rsi);renderBB(d,params.bb);renderATR(d,params.atr);const{gc,dc,ob,os}=countSignals(d);document.getElementById('statDate').textContent=`${d.name||d.code} · ${d.dates.length}条 · ${d.dates[0]} ~ ${d.dates[d.dates.length-1]}`;document.getElementById('statSignal').innerHTML=`<span class="green">金叉${gc}次</span> <span class="orange">死叉${dc}次</span> <span class="green">超买${ob}次</span> <span class="orange">超卖${os}次</span>`;}
+function updateStockInfo(d){
+  const lastClose=d.close[d.close.length-1];
+  const prevClose=d.close[d.close.length-2];
+  const change=lastClose-prevClose;
+  const pct=change/prevClose*100;
+  const elPrice=document.getElementById('infoPrice');
+  const elChange=document.getElementById('infoChange');
+  elPrice.textContent=`${lastClose.toFixed(2)}`;
+  elPrice.className=`val ${pct>=0?'up':'down'}`;
+  elChange.textContent=`${change>=0?'+':''}${change.toFixed(2)} (${pct>=0?'+':''}${pct.toFixed(2)}%)`;
+  elChange.className=`val ${pct>=0?'up':'down'}`;
+  document.getElementById('infoRange').textContent=`${d.dates[0]} ~ ${d.dates[d.dates.length-1]}`;
+  document.getElementById('infoCount').textContent=`${d.dates.length} 条`;
+  document.getElementById('stockInfo').style.display='flex';
+}
+
+function renderAll(){if(!currentData)return;const d=currentData;updateStockInfo(d);renderMACD(d,params.macd);renderRSI(d,params.rsi);renderBB(d,params.bb);renderATR(d,params.atr);const{gc,dc,ob,os}=countSignals(d);document.getElementById('statDate').textContent=`${d.name||d.code} · ${d.dates.length}条 · ${d.dates[0]} ~ ${d.dates[d.dates.length-1]}`;document.getElementById('statSignal').innerHTML=`<span class="green">金叉${gc}次</span> <span class="orange">死叉${dc}次</span> <span class="green">超买${ob}次</span> <span class="orange">超卖${os}次</span>`;}
 
 function parseEmbedded(raw){const ps=raw.split(';'),dt=[],op=[],hi=[],lo=[],cl=[],vo=[];for(const p of ps){const[a,o,h,l,c,v]=p.split(',');dt.push(a.slice(0,4)+'-'+a.slice(4,6)+'-'+a.slice(6));op.push(+o);hi.push(+h);lo.push(+l);cl.push(+c);vo.push(+v);}return{dates:dt,open:op,high:hi,low:lo,close:cl,vol:vo};}
 function loadEmbedded(code){const info=EMBEDDED_DATA[code];if(!info)return;currentData={...parseEmbedded(info.data),name:info.name,code};document.querySelectorAll('.stock-btn').forEach(b=>b.classList.remove('active'));event.target.classList.add('active');document.getElementById('uploadBox').classList.remove('loaded');document.getElementById('nav-file').textContent=`${code} ${info.name}`;document.getElementById('nav-rows').textContent=`${currentData.dates.length}条`;renderAll();}
