@@ -36,19 +36,19 @@ body{font-family:-apple-system,"Microsoft YaHei","SimHei",sans-serif;background:
 .ind-row:last-child{margin-bottom:0}
 
 /* Config panel (left side of each row) */
-.config{width:240px;min-width:240px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.config{width:280px;min-width:280px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;flex-direction:column;gap:6px}
 .config .ch{cursor:pointer;user-select:none}
-.config .ch .hd{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;margin-bottom:6px}
+.config .ch .hd{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:700;margin-bottom:6px}
 .config .ch .hd .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.config .ch .hd .arrow{font-size:9px;color:var(--sub);margin-left:auto;transition:.2s}
+.config .ch .hd .arrow{font-size:10px;color:var(--sub);margin-left:auto;transition:.2s}
 .config .ch .body{display:block}
 .config .ch.collapsed .body{display:none}
 .config .ch.collapsed .arrow{transform:rotate(-90deg)}
-.p-row{display:flex;align-items:center;margin-top:4px;font-size:11px}
-.p-row label{width:52px;color:var(--sub);flex-shrink:0;font-size:11px}
-.p-row input[type=range]{flex:1;height:4px;accent-color:var(--accent);margin:0 6px}
-.p-row input[type=number]{width:46px;height:22px;border:1px solid var(--border);border-radius:3px;text-align:center;font-size:11px;padding:0}
-.p-row select{font-size:11px;padding:2px;border:1px solid var(--border);border-radius:3px;width:100%;margin-top:4px}
+.p-row{display:flex;align-items:center;margin-top:5px;font-size:12px}
+.p-row label{width:48px;color:var(--sub);flex-shrink:0;font-size:12px}
+.p-row input[type=range]{flex:1;height:5px;accent-color:var(--accent);margin:0 6px}
+.p-row input[type=number]{width:50px;height:24px;border:1px solid var(--border);border-radius:4px;text-align:center;font-size:12px;padding:0}
+.p-row select{font-size:12px;padding:3px;border:1px solid var(--border);border-radius:4px;width:100%;margin-top:5px}
 .config .current-val{font-size:10px;color:var(--sub);margin-top:2px;padding:3px 6px;background:var(--bg);border-radius:4px;line-height:1.5}
 
 /* Chart panel (right side of each row) */
@@ -241,10 +241,10 @@ function countSignals(d){const{dif,dea}=calcMACD(d.close,params.macd.fast,params
 
 function renderAll(){if(!currentData)return;const d=currentData;renderMACD(d,params.macd);renderRSI(d,params.rsi);renderBB(d,params.bb);renderATR(d,params.atr);const{gc,dc,ob,os}=countSignals(d);document.getElementById('statDate').textContent=`${d.name||d.code} · ${d.dates.length}条 · ${d.dates[0]} ~ ${d.dates[d.dates.length-1]}`;document.getElementById('statSignal').innerHTML=`<span class="green">金叉${gc}次</span> <span class="orange">死叉${dc}次</span> <span class="green">超买${ob}次</span> <span class="orange">超卖${os}次</span>`;}
 
-function parseEmbedded(raw){const ps=raw.split(';'),dt=[],op=[],hi=[],lo=[],cl=[],vo=[];for(const p of ps){const[a,o,h,l,c,v]=p.split(',');dt.push(a);op.push(+o);hi.push(+h);lo.push(+l);cl.push(+c);vo.push(+v);}return{dates:dt,open:op,high:hi,low:lo,close:cl,vol:vo};}
+function parseEmbedded(raw){const ps=raw.split(';'),dt=[],op=[],hi=[],lo=[],cl=[],vo=[];for(const p of ps){const[a,o,h,l,c,v]=p.split(',');dt.push(a.slice(0,4)+'-'+a.slice(4,6)+'-'+a.slice(6));op.push(+o);hi.push(+h);lo.push(+l);cl.push(+c);vo.push(+v);}return{dates:dt,open:op,high:hi,low:lo,close:cl,vol:vo};}
 function loadEmbedded(code){const info=EMBEDDED_DATA[code];if(!info)return;currentData={...parseEmbedded(info.data),name:info.name,code};document.querySelectorAll('.stock-btn').forEach(b=>b.classList.remove('active'));event.target.classList.add('active');document.getElementById('uploadBox').classList.remove('loaded');document.getElementById('nav-file').textContent=`${code} ${info.name}`;document.getElementById('nav-rows').textContent=`${currentData.dates.length}条`;renderAll();}
 function handleFileUpload(evt){const f=evt.target.files[0];if(f)parseCSV(f);}
-function parseCSV(file){const r=new FileReader();r.onload=e=>{const ls=e.target.result.trim().split('\n'),hdr=ls[0].toLowerCase().split(',');const di=hdr.findIndex(c=>c.includes('trade_date')||c.includes('date')),oi=hdr.findIndex(c=>c.includes('open')),hi=hdr.findIndex(c=>c.includes('high')),li=hdr.findIndex(c=>c.includes('low')),ci=hdr.findIndex(c=>c.includes('close')),vi=hdr.findIndex(c=>c.includes('vol'));if(di<0||ci<0){alert('CSV格式错误：缺少日期或收盘价列');return}const dt=[],op=[],hl=[],lo=[],cl=[],vo=[];for(let i=1;i<ls.length;i++){const vs=ls[i].split(',');if(vs.length<Math.max(di,ci)+1)continue;dt.push(vs[di].trim());cl.push(+vs[ci]);op.push(oi>=0?+vs[oi]:+vs[ci]);hl.push(hi>=0?+vs[hi]:+vs[ci]);lo.push(li>=0?+vs[li]:+vs[ci]);vo.push(vi>=0?+vs[vi]:0);}currentData={dates:dt,open:op,high:hl,low:lo,close:cl,vol:vo,name:file.name.replace('.csv',''),code:'FILE'};document.querySelectorAll('.stock-btn').forEach(b=>b.classList.remove('active'));document.getElementById('uploadBox').classList.add('loaded');document.getElementById('nav-file').textContent=`📄 ${file.name}`;document.getElementById('nav-rows').textContent=`${dt.length}条`;renderAll();};r.readAsText(file);}
+function parseCSV(file){const r=new FileReader();r.onload=e=>{const ls=e.target.result.trim().split('\n'),hdr=ls[0].toLowerCase().split(',');const di=hdr.findIndex(c=>c.includes('trade_date')||c.includes('date')),oi=hdr.findIndex(c=>c.includes('open')),hi=hdr.findIndex(c=>c.includes('high')),li=hdr.findIndex(c=>c.includes('low')),ci=hdr.findIndex(c=>c.includes('close')),vi=hdr.findIndex(c=>c.includes('vol'));if(di<0||ci<0){alert('CSV格式错误：缺少日期或收盘价列');return}const dt=[],op=[],hl=[],lo=[],cl=[],vo=[];for(let i=1;i<ls.length;i++){const vs=ls[i].split(',');if(vs.length<Math.max(di,ci)+1)continue;dt.push(vs[di].trim().replace(/^(\d{4})(\d{2})(\d{2})$/,'$1-$2-$3'));cl.push(+vs[ci]);op.push(oi>=0?+vs[oi]:+vs[ci]);hl.push(hi>=0?+vs[hi]:+vs[ci]);lo.push(li>=0?+vs[li]:+vs[ci]);vo.push(vi>=0?+vs[vi]:0);}currentData={dates:dt,open:op,high:hl,low:lo,close:cl,vol:vo,name:file.name.replace('.csv',''),code:'FILE'};document.querySelectorAll('.stock-btn').forEach(b=>b.classList.remove('active'));document.getElementById('uploadBox').classList.add('loaded');document.getElementById('nav-file').textContent=`📄 ${file.name}`;document.getElementById('nav-rows').textContent=`${dt.length}条`;renderAll();};r.readAsText(file);}
 
 let rt=null;
 function onParam(cat,key,val){params[cat][key]=+val||val;const m={'macd.fast':['macdFast'],'macd.slow':['macdSlow'],'macd.sig':['macdSig'],'bb.n':['bbN'],'rsi.n':['rsiN'],'rsi.ob':['rsiOb'],'rsi.os':['rsiOs'],'atr.n':['atrN']};const id=m[`${cat}.${key}`];if(id){const el=document.getElementById(id[0]);if(el)el.value=val;}if(rt)clearTimeout(rt);rt=setTimeout(renderAll,250);}
