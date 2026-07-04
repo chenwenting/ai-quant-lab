@@ -98,6 +98,30 @@ body{font-family:-apple-system,"Microsoft YaHei","SimHei",sans-serif;background:
 .rpt-signal.bullish{background:#ffeaea;color:var(--up)}
 .rpt-signal.bearish{background:#eafaf1;color:var(--down)}
 .rpt-signal.neutral{background:#f0f0f0;color:var(--sub)}
+
+/* Modal overlay */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.active{display:flex}
+.modal-box{background:var(--card);border-radius:12px;width:min(900px,95vw);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-header{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:600}
+.modal-close{width:28px;height:28px;border-radius:50%;border:none;background:var(--bg);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:#e8eaed}
+.modal-body{flex:1;overflow-y:auto;padding:14px 18px;font-size:13px;line-height:1.8}
+.modal-body h4{font-size:14px;margin:10px 0 6px;color:var(--text)}
+.modal-body h4:first-child{margin-top:0}
+.modal-body .rpt-table{width:100%;border-collapse:collapse;margin:8px 0;font-size:12px}
+.modal-body .rpt-table td{padding:5px 10px;border-bottom:1px solid var(--border)}
+.modal-body .rpt-table td:first-child{color:var(--sub);width:80px;white-space:nowrap}
+.modal-body .rpt-table td:last-child{font-weight:500;color:var(--text)}
+.modal-body .rpt-signal{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;margin:2px 4px}
+.modal-body .rpt-signal.bullish{background:#ffeaea;color:var(--up)}
+.modal-body .rpt-signal.bearish{background:#eafaf1;color:var(--down)}
+.modal-body .rpt-signal.neutral{background:#f0f0f0;color:var(--sub)}
+.modal-tabs{display:flex;gap:0;margin-bottom:0;border-bottom:1px solid var(--border)}
+.modal-tab{padding:8px 16px;background:transparent;border:none;border-bottom:2px solid transparent;font-size:12px;cursor:pointer;transition:.15s;color:var(--sub)}
+.modal-tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.modal-panels .modal-panel{display:none;padding:10px 4px}
+.modal-panels .modal-panel.active{display:block}
 </style>
 </head>
 <body>
@@ -243,9 +267,28 @@ body{font-family:-apple-system,"Microsoft YaHei","SimHei",sans-serif;background:
   <span id="statDate">等待加载数据...</span>
   <span id="statSignal"></span>
   <span style="margin-left:auto;font-size:10px">
+    <button class="btn outline" style="padding:1px 8px;font-size:9px" onclick="openReport()">📋 分析报告</button>
     <button class="btn outline" style="padding:1px 8px;font-size:9px" onclick="resetAll()">🔄 全部默认</button>
     <button class="btn primary" style="padding:1px 8px;font-size:9px" onclick="exportPNG()">📷 导出</button>
   </span>
+</div>
+
+<!-- Report Modal -->
+<div class="modal-overlay" id="rptOverlay" onclick="if(event.target===this)closeReport()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>📋 分析报告 — <span id="rptTitle">选择股票</span></span>
+      <button class="modal-close" onclick="closeReport()">×</button>
+    </div>
+    <div class="modal-tabs">
+      <div class="modal-tab active" onclick="switchRptTab('tech')">📈 技术指标分析</div>
+      <div class="modal-tab" onclick="switchRptTab('fund')">🏢 基本面概况</div>
+    </div>
+    <div class="modal-panels modal-body">
+      <div class="modal-panel active" id="rptTechModal"></div>
+      <div class="modal-panel" id="rptFundModal"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -336,12 +379,17 @@ function resetOne(type){
 function resetAll(){['macd','rsi','bb','atr'].forEach(resetOne);}
 function exportPNG(){['chartMacd','chartRsi','chartBb','chartAtr'].forEach(id=>Plotly.downloadImage(id,{format:'png',width:1000,height:350,filename:`indicator_${id.replace('chart','')}`}));setTimeout(()=>alert('4张图表已下载'),300);}
 
-// ===== 报告面板 =====
+function exportPNG(){['chartMacd','chartRsi','chartBb','chartAtr'].forEach(id=>Plotly.downloadImage(id,{format:'png',width:1000,height:350,filename:`indicator_${id.replace('chart','')}`}));setTimeout(()=>alert('4张图表已下载'),300);}
+
+// ===== Report Modal =====
+function openReport(){if(!currentData){alert('请先加载数据');return}updateReport();document.getElementById('rptOverlay').classList.add('active');document.getElementById('rptTitle').textContent=(currentData.name||'')+' ('+currentData.code+')';}
+function closeReport(){document.getElementById('rptOverlay').classList.remove('active');}
+
 function switchRptTab(tab){
-  document.querySelectorAll('.rpt-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.rpt-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.modal-panel').forEach(p=>p.classList.remove('active'));
   event.target.classList.add('active');
-  document.getElementById(tab==='tech'?'rptTech':'rptFund').classList.add('active');
+  document.getElementById(tab==='tech'?'rptTechModal':'rptFundModal').classList.add('active');
 }
 
 function updateReport(){
@@ -351,7 +399,7 @@ function updateReport(){
 }
 
 function updateTechReport(){
-  const d=currentData,el=document.getElementById('rptTech');
+  const d=currentData,el=document.getElementById('rptTechModal');
   if(!el)return;
   const c=d.close,n=d.close.length;
   const last=c[n-1],first=c[0],cRet=((last/first-1)*100).toFixed(2);
@@ -368,7 +416,6 @@ function updateTechReport(){
   if(lastDif<lastDea){macdSignal='死叉看跌';macdCls='bearish';}else if(Math.abs(lastDif-lastDea)<0.01){macdSignal='粘合待变';macdCls='neutral';}
   else if(lastHist<0){macdSignal='红柱缩短';macdCls='neutral';}
 
-  // Count golden/dead crosses
   let gold=0,dead=0;
   for(let i=1;i<m.dif.length;i++){
     if(m.dif[i-1]!=null&&m.dea[i-1]!=null&&m.dif[i]!=null&&m.dea[i]!=null){
@@ -388,8 +435,7 @@ function updateTechReport(){
   const atrObj=calcATR(d.high,d.low,c,params.atr.n);
   const atrArr=atrObj.atr,lastAtr=parseFloat(atrArr[atrArr.length-1]||0).toFixed(2),avgAtr=parseFloat(atrArr.filter(v=>v!=null).reduce((a,b)=>a+b,0)/atrArr.filter(v=>v!=null).length).toFixed(2);
 
-  el.innerHTML=`
-    <h4>📊 数据概览</h4>
+  el.innerHTML=`<h4>📊 数据概览</h4>
     <table class="rpt-table">
       <tr><td>股票名称</td><td>${currentData.name||''} (${currentData.code||''})</td></tr>
       <tr><td>数据范围</td><td>${d.dates[0]} ~ ${d.dates[d.dates.length-1]}</td></tr>
@@ -402,7 +448,6 @@ function updateTechReport(){
       <tr><td>最大单日涨幅</td><td style="color:var(--up)">+${maxUp}%</td></tr>
       <tr><td>最大单日跌幅</td><td style="color:var(--down)">${maxDn}%</td></tr>
     </table>
-
     <h4>🎯 指标综合诊断</h4>
     <table class="rpt-table">
       <tr><td>MACD</td><td>DIF=${lastDif} DEA=${lastDea} MACD柱=${lastHist} <span class="rpt-signal ${macdCls}">${macdSignal}</span> 金叉${gold}次/死叉${dead}次</td></tr>
@@ -410,29 +455,17 @@ function updateTechReport(){
       <tr><td>布林带(${params.bb.n},${params.bb.k})</td><td>上¥${bb.upper[bb.upper.length-1].toFixed(2)} 中¥${bbM} 下¥${bb.lower[bb.lower.length-1].toFixed(2)} 带宽${bbRate}% 位置:${bbPos}</td></tr>
       <tr><td>ATR(${params.atr.n})</td><td>最新${lastAtr}元 均值${avgAtr}元</td></tr>
     </table>
-
     <h4>💡 综合解读</h4>
-    <p style="margin-bottom:6px">
-    ${currentData.name}在近${Math.ceil(n/242*12)}个月中，股价${cRet>=0?'上涨':'下跌'}${Math.abs(parseFloat(cRet))}%。
-    当前MACD指标${macdCls==='bullish'?'处于多头趋势':'处于空头趋势'}，RSI位于${rsiState}，
-    布林带带宽率${bbRate}%反映市场${parseFloat(bbRate)>20?'波动较大':'波动适中'}。
-    技术面综合判断：${macdCls==='bullish'&&rsiCls!=='bearish'?'偏多':'偏空'}，
-    建议结合基本面和市场环境综合决策。
-    </p>
-    <p style="font-size:11px;color:var(--sub)">⚠ 以上为基于历史数据的量化指标分析，不构成投资建议。</p>
-  `;
+    <p style="margin-bottom:6px">${currentData.name}在近${Math.ceil(n/242*12)}个月中，股价${cRet>=0?'上涨':'下跌'}${Math.abs(parseFloat(cRet))}%。当前MACD指标${macdCls==='bullish'?'处于多头趋势':'处于空头趋势'}，RSI位于${rsiState}，布林带带宽率${bbRate}%反映市场${parseFloat(bbRate)>20?'波动较大':'波动适中'}。技术面综合判断：${macdCls==='bullish'&&rsiCls!=='bearish'?'偏多':'偏空'}，建议结合基本面和市场环境综合决策。</p>
+    <p style="font-size:11px;color:var(--sub)">⚠ 以上为基于历史数据的量化指标分析，不构成投资建议。</p>`;
 }
 
 function updateFundReport(){
-  const el=document.getElementById('rptFund');
+  const el=document.getElementById('rptFundModal');
   if(!el||!currentData||!currentData.code)return;
   const f=_FUND[currentData.code];
   if(!f){el.innerHTML='<p style="color:var(--sub)">暂无该股票的基本面数据</p>';return;}
-
-  el.innerHTML=`
-    <h4>🏢 公司简介</h4>
-    <p>${f.desc||'暂无'}</p>
-
+  el.innerHTML=`<h4>🏢 公司简介</h4><p>${f.desc||'暂无'}</p>
     <h4>📋 基本信息</h4>
     <table class="rpt-table">
       <tr><td>所属行业</td><td>${f.industry||'--'}</td></tr>
@@ -440,7 +473,6 @@ function updateFundReport(){
       <tr><td>上市日期</td><td>${f.list_date||'--'}</td></tr>
       <tr><td>员工人数</td><td>${f.employees||'--'}人</td></tr>
     </table>
-
     <h4>💰 估值指标</h4>
     <table class="rpt-table">
       <tr><td>静态PE(市盈率)</td><td>${f.pe||'--'}</td></tr>
@@ -448,15 +480,9 @@ function updateFundReport(){
       <tr><td>PB(市净率)</td><td>${f.pb||'--'}</td></tr>
       <tr><td>总市值</td><td>${f.mv||'--'}</td></tr>
     </table>
-
     <h4>📊 估值解读</h4>
-    <p style="margin-bottom:6px">
-    当前PE TTM为${f.pe_ttm||'--'}倍，${parseFloat(f.pe_ttm)>50?'处于较高估值区间，市场给予较高的成长性溢价。':'处于相对合理区间。'}
-    PB为${f.pb||'--'}倍，${parseFloat(f.pb)>5?'高于面值数倍，反映较强的品牌或无形价值。':'处于较低估值区间。'}
-    总市值约${f.mv||'--'}，在所属${f.industry||'--'}行业中${parseFloat(f.mv)>1000?'位居前列。':'具有一定规模。'}
-    </p>
-    <p style="font-size:11px;color:var(--sub)">⚠ 估值数据来源：tushare/公开市场数据，仅供参考，不构成投资建议。</p>
-  `;
+    <p style="margin-bottom:6px">当前PE TTM为${f.pe_ttm||'--'}倍，${parseFloat(f.pe_ttm)>50?'处于较高估值区间，市场给予较高的成长性溢价。':'处于相对合理区间。'}PB为${f.pb||'--'}倍，${parseFloat(f.pb)>5?'高于面值数倍，反映较强的品牌或无形价值。':'处于较低估值区间。'}总市值约${f.mv||'--'}，在所属${f.industry||'--'}行业中${parseFloat(f.mv)>1000?'位居前列。':'具有一定规模。'}</p>
+    <p style="font-size:11px;color:var(--sub)">⚠ 估值数据来源：tushare/公开市场数据，仅供参考，不构成投资建议。</p>`;
 }
 
 // Trigger report update on stock load
