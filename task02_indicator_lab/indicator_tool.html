@@ -97,13 +97,13 @@ body{font-family:-apple-system,"Microsoft YaHei","SimHei",sans-serif;background:
       📁 点击上传 / 拖拽 CSV
     </div>
 
-    <!-- ===== 左列指标 ===== -->
-    <div class="sec-title">⬅️ 左列图表 · 趋势 &amp; 动量</div>
+    <!-- ===== 指标参数 (与右侧2x2网格一一对应) ===== -->
+    <div class="sec-title">⚙️ 指标参数 · 上排</div>
 
-    <!-- MACD (左上) -->
+    <!-- ① MACD → 左上 -->
     <div class="ind-card open">
       <div class="hd" onclick="this.closest('.ind-card').classList.toggle('open')">
-        <div class="dot" style="background:var(--macd-c)"></div>MACD<span class="pos">左上</span><span class="arrow">▼</span>
+        <div class="dot" style="background:var(--macd-c)"></div>① MACD<span class="pos">→ 左上图表</span><span class="arrow">▼</span>
       </div>
       <div class="bd">
         <div class="p-row"><label>快线周期</label><input type=range min=5 max=30 value=12 id=macdFast oninput="onParam('macd','fast',this.value)"><input type=number value=12 id=macdFastN onchange="onParam('macd','fast',this.value)"></div>
@@ -112,10 +112,23 @@ body{font-family:-apple-system,"Microsoft YaHei","SimHei",sans-serif;background:
       </div>
     </div>
 
-    <!-- RSI (左下) -->
+    <!-- ② BB → 右上 -->
     <div class="ind-card open">
       <div class="hd" onclick="this.closest('.ind-card').classList.toggle('open')">
-        <div class="dot" style="background:var(--rsi-c)"></div>RSI<span class="pos">左下</span><span class="arrow">▼</span>
+        <div class="dot" style="background:var(--bb-c)"></div>② 布林带 BB<span class="pos">→ 右上图表</span><span class="arrow">▼</span>
+      </div>
+      <div class="bd">
+        <div class="p-row"><label>均线周期</label><input type=range min=5 max=50 value=20 id=bbN oninput="onParam('bb','n',this.value)"><input type=number value=20 id=bbNN onchange="onParam('bb','n',this.value)"></div>
+        <div class="p-row"><label>标准差</label><input type=range min=10 max=40 value=20 id=bbK oninput="onParam('bb','k',this.value/10);document.getElementById('bbKv').textContent=(this.value/10).toFixed(1)"><span style="font-size:10px;width:24px;text-align:right;color:var(--sub)" id=bbKv>2.0</span>σ</div>
+      </div>
+    </div>
+
+    <div class="sec-title">⚙️ 指标参数 · 下排</div>
+
+    <!-- ③ RSI → 左下 -->
+    <div class="ind-card open">
+      <div class="hd" onclick="this.closest('.ind-card').classList.toggle('open')">
+        <div class="dot" style="background:var(--rsi-c)"></div>③ RSI<span class="pos">→ 左下图表</span><span class="arrow">▼</span>
       </div>
       <div class="bd">
         <div class="p-row"><label>计算周期</label><input type=range min=5 max=50 value=14 id=rsiN oninput="onParam('rsi','n',this.value)"><input type=number value=14 id=rsiNN onchange="onParam('rsi','n',this.value)"></div>
@@ -124,24 +137,10 @@ body{font-family:-apple-system,"Microsoft YaHei","SimHei",sans-serif;background:
       </div>
     </div>
 
-    <!-- ===== 右列指标 ===== -->
-    <div class="sec-title">➡️ 右列图表 · 波动 &amp; 通道</div>
-
-    <!-- BB (右上) -->
+    <!-- ④ ATR → 右下 -->
     <div class="ind-card open">
       <div class="hd" onclick="this.closest('.ind-card').classList.toggle('open')">
-        <div class="dot" style="background:var(--bb-c)"></div>布林带 BB<span class="pos">右上</span><span class="arrow">▼</span>
-      </div>
-      <div class="bd">
-        <div class="p-row"><label>均线周期</label><input type=range min=5 max=50 value=20 id=bbN oninput="onParam('bb','n',this.value)"><input type=number value=20 id=bbNN onchange="onParam('bb','n',this.value)"></div>
-        <div class="p-row"><label>标准差</label><input type=range min=10 max=40 value=20 id=bbK oninput="onParam('bb','k',this.value/10);document.getElementById('bbKv').textContent=(this.value/10).toFixed(1)"><span style="font-size:10px;width:24px;text-align:right;color:var(--sub)" id=bbKv>2.0</span>σ</div>
-      </div>
-    </div>
-
-    <!-- ATR (右下) -->
-    <div class="ind-card open">
-      <div class="hd" onclick="this.closest('.ind-card').classList.toggle('open')">
-        <div class="dot" style="background:var(--atr-c)"></div>ATR 平均真实波幅<span class="pos">右下</span><span class="arrow">▼</span>
+        <div class="dot" style="background:var(--atr-c)"></div>④ ATR 平均真实波幅<span class="pos">→ 右下图表</span><span class="arrow">▼</span>
       </div>
       <div class="bd">
         <div class="p-row"><label>计算周期</label><input type=range min=5 max=50 value=14 id=atrN oninput="onParam('atr','n',this.value)"><input type=number value=14 id=atrNN onchange="onParam('atr','n',this.value)"></div>
