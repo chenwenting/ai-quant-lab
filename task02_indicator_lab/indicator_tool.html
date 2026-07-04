@@ -9,54 +9,72 @@
 :root {
   --up: #e74c3c; --down: #27ae60;
   --bg: #f5f6fa; --card: #fff; --text: #1a1a2e; --sub: #6c757d;
-  --border: #e8eaed; --accent: #4361ee; --accent-h: #3a56d4;
+  --border: #e8eaed; --accent: #4361ee;
   --sidebar-bg: #fafbfc;
+  --macd-c: #3498db; --bb-c: #9b59b6; --rsi-c: #e67e22; --atr-c: #27ae60;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,"Microsoft YaHei","SimHei",sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
-.top-nav{height:48px;background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;display:flex;align-items:center;padding:0 16px;font-size:14px;gap:12px;z-index:100}
-.top-nav .brand{font-weight:700;font-size:16px;letter-spacing:.5px}
+
+/* Top nav */
+.top-nav{height:44px;background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;display:flex;align-items:center;padding:0 16px;font-size:13px;gap:12px;z-index:100}
+.top-nav .brand{font-weight:700;font-size:15px}
 .top-nav .brand span{color:var(--accent)}
-.top-nav .sep{color:rgba(255,255,255,.3)}
-.top-nav .file-tag{background:rgba(255,255,255,.12);padding:2px 10px;border-radius:12px;font-size:12px}
+.top-nav .sep{color:rgba(255,255,255,.25)}
+.top-nav .tag{background:rgba(255,255,255,.1);padding:2px 10px;border-radius:10px;font-size:11px}
+
 .main{display:flex;flex:1;overflow:hidden}
-.sidebar{width:300px;min-width:300px;background:var(--sidebar-bg);border-right:1px solid var(--border);overflow-y:auto;padding:12px}
-.chart-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.chart-grid{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:8px;padding:8px}
-.chart-box{background:var(--card);border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;overflow:hidden}
-.chart-box .title-bar{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-bottom:1px solid var(--border);font-size:12px;font-weight:600}
-.chart-box .title-bar .badge{font-weight:400;color:var(--sub);font-size:11px}
-.chart-box .plot{flex:1;min-height:0}
-.status-bar{height:30px;background:var(--card);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 16px;font-size:11px;color:var(--sub);gap:18px}
-.status-bar .good{color:#27ae60}
-.status-bar .warn{color:#e67e22}
-.section-title{font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin:10px 0 6px}
-.stock-btns{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
-.stock-btn{padding:6px 12px;border:1px solid var(--border);border-radius:6px;background:var(--card);cursor:pointer;font-size:12px;transition:all .15s;color:var(--text)}
+
+/* Sidebar */
+.sidebar{width:280px;min-width:280px;background:var(--sidebar-bg);border-right:1px solid var(--border);overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.sec-title{font-size:10.5px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.8px;padding:4px 0 2px}
+
+.stock-row{display:flex;flex-wrap:wrap;gap:5px}
+.stock-btn{padding:5px 10px;border:1px solid var(--border);border-radius:5px;background:var(--card);cursor:pointer;font-size:11.5px;transition:all .15s;color:var(--text)}
 .stock-btn:hover{border-color:var(--accent);background:#eef1ff}
 .stock-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.upload-box{border:1.5px dashed #ccc;border-radius:8px;padding:12px;text-align:center;cursor:pointer;font-size:12px;color:var(--sub);margin-bottom:10px;transition:all .2s}
+
+.upload-box{border:1.5px dashed #ccc;border-radius:6px;padding:10px;text-align:center;cursor:pointer;font-size:11px;color:var(--sub);transition:all .2s}
 .upload-box:hover{border-color:var(--accent);background:#eef1ff}
 .upload-box.loaded{border-color:#27ae60;border-style:solid;background:#f0faf4}
-.indicator-card{border:1px solid var(--border);border-radius:8px;background:var(--card);margin-bottom:8px;overflow:hidden}
-.indicator-card .card-hd{padding:8px 10px;display:flex;align-items:center;cursor:pointer;user-select:none;gap:8px;font-size:13px;font-weight:600}
-.indicator-card .card-hd:hover{background:var(--bg)}
-.indicator-card .card-hd .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.indicator-card .card-hd .arrow{font-size:10px;color:var(--sub);margin-left:auto;transition:.2s}
-.indicator-card.open .card-hd .arrow{transform:rotate(180deg)}
-.indicator-card .card-bd{display:none;padding:6px 10px 10px;border-top:1px solid var(--border)}
-.indicator-card.open .card-bd{display:block}
-.param-row{display:flex;align-items:center;margin-top:6px;font-size:12px}
-.param-row label{width:72px;color:var(--sub);flex-shrink:0}
-.param-row input[type=range]{flex:1;height:4px;accent-color:var(--accent);margin:0 8px}
-.param-row input[type=number]{width:48px;height:24px;border:1px solid var(--border);border-radius:4px;text-align:center;font-size:12px}
-.param-row .val{min-width:28px;text-align:right;font-size:11px;color:var(--sub)}
-.btn-row{display:flex;gap:6px;margin-top:10px}
-.btn{flex:1;padding:7px 0;border:none;border-radius:6px;font-size:12px;cursor:pointer;transition:.15s}
-.btn.primary{background:var(--accent);color:#fff}
-.btn.primary:hover{background:var(--accent-h)}
-.btn.outline{background:transparent;border:1px solid var(--border);color:var(--sub)}
-.btn.outline:hover{background:var(--bg)}
+
+/* Indicator cards */
+.ind-card{border:1px solid var(--border);border-radius:7px;background:var(--card);overflow:hidden}
+.ind-card .hd{padding:7px 10px;display:flex;align-items:center;cursor:pointer;user-select:none;gap:7px;font-size:12px;font-weight:600}
+.ind-card .hd:hover{background:#f8f9fa}
+.ind-card .hd .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.ind-card .hd .pos{font-size:10px;color:var(--sub);margin-left:auto;margin-right:4px}
+.ind-card .hd .arrow{font-size:9px;color:var(--sub);transition:.2s}
+.ind-card.open .hd .arrow{transform:rotate(180deg)}
+.ind-card .bd{display:none;padding:4px 10px 8px;border-top:1px solid var(--border)}
+.ind-card.open .bd{display:block}
+
+.p-row{display:flex;align-items:center;margin-top:5px;font-size:11px}
+.p-row label{width:62px;color:var(--sub);flex-shrink:0;font-size:10.5px}
+.p-row input[type=range]{flex:1;height:3px;accent-color:var(--accent);margin:0 6px}
+.p-row input[type=number]{width:44px;height:22px;border:1px solid var(--border);border-radius:4px;text-align:center;font-size:11px;padding:0}
+.p-row select{font-size:11px;padding:2px 4px;border:1px solid var(--border);border-radius:4px}
+
+.btn-row{display:flex;gap:6px}
+.btn{flex:1;padding:6px 0;border:none;border-radius:5px;font-size:11px;cursor:pointer;transition:.15s}
+.btn.pri{background:var(--accent);color:#fff}
+.btn.pri:hover{filter:brightness(.9)}
+.btn.out{background:transparent;border:1px solid var(--border);color:var(--sub)}
+.btn.out:hover{background:var(--bg)}
+
+/* Chart area */
+.chart-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.chart-grid{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:6px;padding:6px}
+.chart-box{background:var(--card);border:1px solid var(--border);border-radius:7px;display:flex;flex-direction:column;overflow:hidden}
+.chart-box .tbar{display:flex;align-items:center;justify-content:space-between;padding:5px 8px;border-bottom:1px solid var(--border);font-size:11px;font-weight:600}
+.chart-box .tbar .badge{font-weight:400;color:var(--sub);font-size:10px}
+.chart-box .tbar .pos-dot{width:6px;height:6px;border-radius:50%;margin-right:4px;display:inline-block}
+.chart-box .plot{flex:1;min-height:0}
+
+/* Status bar */
+.status-bar{height:26px;background:var(--card);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 14px;font-size:10.5px;color:var(--sub);gap:16px}
+.status-bar .good{color:#27ae60}
+.status-bar .warn{color:#e67e22}
 </style>
 </head>
 <body>
@@ -64,60 +82,70 @@ body{font-family:-apple-system,"Microsoft YaHei","SimHei",sans-serif;background:
 <nav class="top-nav">
   <div class="brand">📊 <span>Indicator</span>Lab</div>
   <span class="sep">|</span>
-  <span id="nav-file" class="file-tag">选择股票数据</span>
-  <span class="sep">|</span>
-  <span id="nav-rows" style="font-size:12px"></span>
+  <span id="nav-file" class="tag">选择股票数据</span>
+  <span id="nav-rows" style="font-size:11px"></span>
 </nav>
 
 <div class="main">
-  <aside class="sidebar" id="sidebar">
-    <div class="section-title">📂 数据源</div>
-    <div class="stock-btns" id="stockBtns"></div>
+  <aside class="sidebar">
+
+    <!-- ===== 数据源 ===== -->
+    <div class="sec-title">📂 数据源</div>
+    <div class="stock-row" id="stockBtns"></div>
     <input type="file" id="fileInput" accept=".csv" style="display:none" onchange="handleFileUpload(event)">
     <div class="upload-box" onclick="document.getElementById('fileInput').click()" id="uploadBox">
-      📁 <strong>点击上传</strong> CSV 文件<br><small>支持标准 A股日线格式</small>
+      📁 点击上传 / 拖拽 CSV
     </div>
 
-    <div class="section-title">⚙️ MACD 参数</div>
-    <div class="indicator-card open" data-ind="macd">
-      <div class="card-hd" onclick="this.closest('.indicator-card').classList.toggle('open')">
-        <div class="dot" style="background:#3498db"></div>MACD · 指数平滑异同均线<span class="arrow">▼</span>
-      </div>
-      <div class="card-bd">
-        <div class="param-row"><label>快线周期</label><input type=range min=5 max=30 value=12 id=macdFast oninput="onParam('macd','fast',this.value)"><input type=number value=12 id=macdFastN onchange="onParam('macd','fast',this.value)"></div>
-        <div class="param-row"><label>慢线周期</label><input type=range min=10 max=50 value=26 id=macdSlow oninput="onParam('macd','slow',this.value)"><input type=number value=26 id=macdSlowN onchange="onParam('macd','slow',this.value)"></div>
-        <div class="param-row"><label>信号周期</label><input type=range min=5 max=20 value=9 id=macdSig oninput="onParam('macd','sig',this.value)"><input type=number value=9 id=macdSigN onchange="onParam('macd','sig',this.value)"></div>
-      </div>
-    </div>
+    <!-- ===== 左列指标 ===== -->
+    <div class="sec-title">⬅️ 左列图表 · 趋势 &amp; 动量</div>
 
-    <div class="indicator-card open" data-ind="bb">
-      <div class="card-hd" onclick="this.closest('.indicator-card').classList.toggle('open')">
-        <div class="dot" style="background:#9b59b6"></div>BB · 布林带<span class="arrow">▼</span>
+    <!-- MACD (左上) -->
+    <div class="ind-card open">
+      <div class="hd" onclick="this.closest('.ind-card').classList.toggle('open')">
+        <div class="dot" style="background:var(--macd-c)"></div>MACD<span class="pos">左上</span><span class="arrow">▼</span>
       </div>
-      <div class="card-bd">
-        <div class="param-row"><label>均线周期</label><input type=range min=5 max=50 value=20 id=bbN oninput="onParam('bb','n',this.value)"><input type=number value=20 id=bbNN onchange="onParam('bb','n',this.value)"></div>
-        <div class="param-row"><label>标准差倍数</label><input type=range min=10 max=40 value=20 id=bbK oninput="onParam('bb','k',this.value/10);document.getElementById('bbKv').textContent=(this.value/10).toFixed(1)"><span class=val id=bbKv>2.0</span></div>
+      <div class="bd">
+        <div class="p-row"><label>快线周期</label><input type=range min=5 max=30 value=12 id=macdFast oninput="onParam('macd','fast',this.value)"><input type=number value=12 id=macdFastN onchange="onParam('macd','fast',this.value)"></div>
+        <div class="p-row"><label>慢线周期</label><input type=range min=10 max=50 value=26 id=macdSlow oninput="onParam('macd','slow',this.value)"><input type=number value=26 id=macdSlowN onchange="onParam('macd','slow',this.value)"></div>
+        <div class="p-row"><label>信号周期</label><input type=range min=5 max=20 value=9 id=macdSig oninput="onParam('macd','sig',this.value)"><input type=number value=9 id=macdSigN onchange="onParam('macd','sig',this.value)"></div>
       </div>
     </div>
 
-    <div class="indicator-card open" data-ind="rsi">
-      <div class="card-hd" onclick="this.closest('.indicator-card').classList.toggle('open')">
-        <div class="dot" style="background:#e67e22"></div>RSI · 相对强弱指标<span class="arrow">▼</span>
+    <!-- RSI (左下) -->
+    <div class="ind-card open">
+      <div class="hd" onclick="this.closest('.ind-card').classList.toggle('open')">
+        <div class="dot" style="background:var(--rsi-c)"></div>RSI<span class="pos">左下</span><span class="arrow">▼</span>
       </div>
-      <div class="card-bd">
-        <div class="param-row"><label>计算周期</label><input type=range min=5 max=50 value=14 id=rsiN oninput="onParam('rsi','n',this.value)"><input type=number value=14 id=rsiNN onchange="onParam('rsi','n',this.value)"></div>
-        <div class="param-row"><label>超买阈值</label><input type=range min=60 max=90 value=70 id=rsiOb oninput="onParam('rsi','ob',this.value)"><input type=number value=70 id=rsiObN onchange="onParam('rsi','ob',this.value)"></div>
-        <div class="param-row"><label>超卖阈值</label><input type=range min=10 max=40 value=30 id=rsiOs oninput="onParam('rsi','os',this.value)"><input type=number value=30 id=rsiOsN onchange="onParam('rsi','os',this.value)"></div>
+      <div class="bd">
+        <div class="p-row"><label>计算周期</label><input type=range min=5 max=50 value=14 id=rsiN oninput="onParam('rsi','n',this.value)"><input type=number value=14 id=rsiNN onchange="onParam('rsi','n',this.value)"></div>
+        <div class="p-row"><label>超买阈值</label><input type=range min=60 max=90 value=70 id=rsiOb oninput="onParam('rsi','ob',this.value)"><input type=number value=70 id=rsiObN onchange="onParam('rsi','ob',this.value)"></div>
+        <div class="p-row"><label>超卖阈值</label><input type=range min=10 max=40 value=30 id=rsiOs oninput="onParam('rsi','os',this.value)"><input type=number value=30 id=rsiOsN onchange="onParam('rsi','os',this.value)"></div>
       </div>
     </div>
 
-    <div class="indicator-card open" data-ind="atr">
-      <div class="card-hd" onclick="this.closest('.indicator-card').classList.toggle('open')">
-        <div class="dot" style="background:#27ae60"></div>ATR · 平均真实波幅<span class="arrow">▼</span>
+    <!-- ===== 右列指标 ===== -->
+    <div class="sec-title">➡️ 右列图表 · 波动 &amp; 通道</div>
+
+    <!-- BB (右上) -->
+    <div class="ind-card open">
+      <div class="hd" onclick="this.closest('.ind-card').classList.toggle('open')">
+        <div class="dot" style="background:var(--bb-c)"></div>布林带 BB<span class="pos">右上</span><span class="arrow">▼</span>
       </div>
-      <div class="card-bd">
-        <div class="param-row"><label>计算周期</label><input type=range min=5 max=50 value=14 id=atrN oninput="onParam('atr','n',this.value)"><input type=number value=14 id=atrNN onchange="onParam('atr','n',this.value)"></div>
-        <select id="atrType" style="width:100%;padding:4px;margin-top:6px;border:1px solid var(--border);border-radius:4px;font-size:12px" onchange="onParam('atr','type',this.value)">
+      <div class="bd">
+        <div class="p-row"><label>均线周期</label><input type=range min=5 max=50 value=20 id=bbN oninput="onParam('bb','n',this.value)"><input type=number value=20 id=bbNN onchange="onParam('bb','n',this.value)"></div>
+        <div class="p-row"><label>标准差</label><input type=range min=10 max=40 value=20 id=bbK oninput="onParam('bb','k',this.value/10);document.getElementById('bbKv').textContent=(this.value/10).toFixed(1)"><span style="font-size:10px;width:24px;text-align:right;color:var(--sub)" id=bbKv>2.0</span>σ</div>
+      </div>
+    </div>
+
+    <!-- ATR (右下) -->
+    <div class="ind-card open">
+      <div class="hd" onclick="this.closest('.ind-card').classList.toggle('open')">
+        <div class="dot" style="background:var(--atr-c)"></div>ATR 平均真实波幅<span class="pos">右下</span><span class="arrow">▼</span>
+      </div>
+      <div class="bd">
+        <div class="p-row"><label>计算周期</label><input type=range min=5 max=50 value=14 id=atrN oninput="onParam('atr','n',this.value)"><input type=number value=14 id=atrNN onchange="onParam('atr','n',this.value)"></div>
+        <select id="atrType" style="width:100%;margin-top:5px;font-size:11px;padding:3px;border:1px solid var(--border);border-radius:4px" onchange="onParam('atr','type',this.value)">
           <option value="pct">ATR % (占收盘价%)</option>
           <option value="abs">ATR 绝对值</option>
         </select>
@@ -125,17 +153,34 @@ body{font-family:-apple-system,"Microsoft YaHei","SimHei",sans-serif;background:
     </div>
 
     <div class="btn-row">
-      <button class="btn outline" onclick="resetParams()">🔄 默认参数</button>
-      <button class="btn primary" onclick="exportPNG()">📷 导出图片</button>
+      <button class="btn out" onclick="resetParams()">🔄 默认</button>
+      <button class="btn pri" onclick="exportPNG()">📷 导出</button>
     </div>
   </aside>
 
+  <!-- ===== 图表区 ===== -->
   <main class="chart-area">
     <div class="chart-grid">
-      <div class="chart-box"><div class="title-bar">📈 MACD <span class=badge id=macdBadge></span></div><div class=plot id=chartMacd></div></div>
-      <div class="chart-box"><div class="title-bar">📈 布林带 BB <span class=badge id=bbBadge></span></div><div class=plot id=chartBb></div></div>
-      <div class="chart-box"><div class="title-bar">📈 RSI <span class=badge id=rsiBadge></span></div><div class=plot id=chartRsi></div></div>
-      <div class="chart-box"><div class="title-bar">📈 ATR <span class=badge id=atrBadge></span></div><div class=plot id=chartAtr></div></div>
+      <!-- 左上 MACD -->
+      <div class="chart-box">
+        <div class="tbar"><span><span class="pos-dot" style="background:var(--macd-c)"></span>MACD</span><span class="badge" id=macdBadge></span></div>
+        <div class="plot" id="chartMacd"></div>
+      </div>
+      <!-- 右上 BB -->
+      <div class="chart-box">
+        <div class="tbar"><span><span class="pos-dot" style="background:var(--bb-c)"></span>布林带 BB</span><span class="badge" id=bbBadge></span></div>
+        <div class="plot" id="chartBb"></div>
+      </div>
+      <!-- 左下 RSI -->
+      <div class="chart-box">
+        <div class="tbar"><span><span class="pos-dot" style="background:var(--rsi-c)"></span>RSI</span><span class="badge" id=rsiBadge></span></div>
+        <div class="plot" id="chartRsi"></div>
+      </div>
+      <!-- 右下 ATR -->
+      <div class="chart-box">
+        <div class="tbar"><span><span class="pos-dot" style="background:var(--atr-c)"></span>ATR</span><span class="badge" id=atrBadge></span></div>
+        <div class="plot" id="chartAtr"></div>
+      </div>
     </div>
   </main>
 </div>
@@ -153,7 +198,7 @@ const EMBEDDED_DATA = {
 };
 
 // ===== State =====
-let currentData = null; // {dates, open, high, low, close, vol, name, code}
+let currentData = null;
 
 // ===== Params =====
 const params = {
@@ -173,351 +218,156 @@ const params = {
     btn.onclick = () => loadEmbedded(code);
     btns.appendChild(btn);
   }
-
-  // 拖拽支持
-  const uploadBox = document.getElementById('uploadBox');
-  uploadBox.addEventListener('dragover', e => { e.preventDefault(); uploadBox.style.borderColor = '#4361ee'; });
-  uploadBox.addEventListener('dragleave', () => { uploadBox.style.borderColor = '#ccc'; });
-  uploadBox.addEventListener('drop', e => {
-    e.preventDefault();
-    uploadBox.style.borderColor = '#ccc';
-    const file = e.dataTransfer.files[0];
-    if (file) parseCSV(file);
+  const ub = document.getElementById('uploadBox');
+  ub.addEventListener('dragover', e => { e.preventDefault(); ub.style.borderColor = '#4361ee'; });
+  ub.addEventListener('dragleave', () => { ub.style.borderColor = '#ccc'; });
+  ub.addEventListener('drop', e => {
+    e.preventDefault(); ub.style.borderColor = '#ccc';
+    const f = e.dataTransfer.files[0]; if (f) parseCSV(f);
   });
 })();
 
-// ===== Indicator Engines =====
-function ema(arr, period) {
-  const k = 2 / (period + 1), result = new Array(arr.length).fill(null);
-  let sum = 0;
-  for (let i = 0; i < period; i++) sum += arr[i];
-  result[period - 1] = sum / period;
-  for (let i = period; i < arr.length; i++) result[i] = arr[i] * k + result[i - 1] * (1 - k);
-  return result;
-}
-function sma(arr, period) {
-  const result = new Array(arr.length).fill(null);
-  let sum = 0;
-  for (let i = 0; i < arr.length; i++) {
-    sum += arr[i];
-    if (i >= period) sum -= arr[i - period];
-    if (i >= period - 1) result[i] = sum / period;
-  }
-  return result;
-}
-function std(arr, period, means) {
-  const result = new Array(arr.length).fill(null);
-  for (let i = period - 1; i < arr.length; i++) {
-    let s = 0;
-    for (let j = i - period + 1; j <= i; j++) s += (arr[j] - means[i]) ** 2;
-    result[i] = Math.sqrt(s / period);
-  }
-  return result;
-}
+// ===== Engines =====
+function ema(arr, p) { const k=2/(p+1),r=new Array(arr.length).fill(null); let s=0; for(let i=0;i<p;i++)s+=arr[i]; r[p-1]=s/p; for(let i=p;i<arr.length;i++)r[i]=arr[i]*k+r[i-1]*(1-k); return r; }
+function sma(arr, p) { const r=new Array(arr.length).fill(null); let s=0; for(let i=0;i<arr.length;i++){s+=arr[i];if(i>=p)s-=arr[i-p];if(i>=p-1)r[i]=s/p;} return r; }
+function stdv(arr, p, m) { const r=new Array(arr.length).fill(null); for(let i=p-1;i<arr.length;i++){let ss=0;for(let j=i-p+1;j<=i;j++)ss+=(arr[j]-m[i])**2;r[i]=Math.sqrt(ss/p);} return r; }
 
-function calcMACD(close, fast, slow, sig) {
-  const ef = ema(close, fast), es = ema(close, slow);
-  const dif = ef.map((f, i) => (f !== null && es[i] !== null) ? f - es[i] : null);
-  const validDif = dif.filter(v => v !== null);
-  const deaRaw = ema(validDif, sig);
-  let di = 0;
-  const dea = new Array(close.length).fill(null);
-  for (let i = 0; i < close.length; i++) { if (dif[i] !== null) dea[i] = deaRaw[di++]; }
-  const hist = dif.map((f, i) => (f !== null && dea[i] !== null) ? 2 * (f - dea[i]) : null);
-  return {dif, dea, hist};
+function calcMACD(c, f, s, sig) {
+  const ef=ema(c,f), es=ema(c,s), dif=ef.map((v,i)=>(v!=null&&es[i]!=null)?v-es[i]:null);
+  const vd=dif.filter(v=>v!=null), dr=ema(vd,sig); let di=0;
+  const dea=new Array(c.length).fill(null);
+  for(let i=0;i<c.length;i++)if(dif[i]!=null)dea[i]=dr[di++];
+  const hist=dif.map((v,i)=>(v!=null&&dea[i]!=null)?2*(v-dea[i]):null);
+  return {dif,dea,hist};
 }
-
-function calcBB(close, n, k) {
-  const mid = sma(close, n);
-  const sd = std(close, n, mid);
-  const upper = mid.map((m, i) => (m !== null && sd[i] !== null) ? m + k * sd[i] : null);
-  const lower = mid.map((m, i) => (m !== null && sd[i] !== null) ? m - k * sd[i] : null);
-  return {mid, upper, lower};
+function calcBB(c, n, k) { const m=sma(c,n), s=stdv(c,n,m); return {mid:m, upper:m.map((v,i)=>(v!=null&&s[i]!=null)?v+k*s[i]:null), lower:m.map((v,i)=>(v!=null&&s[i]!=null)?v-k*s[i]:null)}; }
+function calcRSI(c, n) {
+  const r=new Array(c.length).fill(null); let ag=0,al=0;
+  for(let i=1;i<=n;i++){const d=c[i]-c[i-1]; if(d>0)ag+=d;else al-=d;}
+  r[n]=100-100/(1+ag/(al||1e-4));
+  for(let i=n+1;i<c.length;i++){const d=c[i]-c[i-1]; ag=(ag*(n-1)+(d>0?d:0))/n; al=(al*(n-1)+(d<0?-d:0))/n; r[i]=100-100/(1+ag/(al||1e-4));}
+  return r;
 }
+function calcATR(h, l, c, n) { const tr=[0]; for(let i=1;i<c.length;i++)tr.push(Math.max(h[i]-l[i],Math.abs(h[i]-c[i-1]),Math.abs(l[i]-c[i-1]))); const a=sma(tr,n); return {tr,atr:a,atrPct:a.map((v,i)=>(v!=null)?v/c[i]*100:null)}; }
 
-function calcRSI(close, n) {
-  const rsi = new Array(close.length).fill(null);
-  let ag = 0, al = 0;
-  for (let i = 1; i <= n; i++) {
-    const d = close[i] - close[i-1];
-    if (d > 0) ag += d; else al -= d;
-  }
-  rsi[n] = 100 - 100 / (1 + ag / (al || 0.0001));
-  for (let i = n + 1; i < close.length; i++) {
-    const d = close[i] - close[i-1];
-    ag = (ag * (n - 1) + (d > 0 ? d : 0)) / n;
-    al = (al * (n - 1) + (d < 0 ? -d : 0)) / n;
-    rsi[i] = 100 - 100 / (1 + ag / (al || 0.0001));
-  }
-  return rsi;
-}
-
-function calcATR(high, low, close, n) {
-  const tr = [0];
-  for (let i = 1; i < close.length; i++) {
-    tr.push(Math.max(high[i] - low[i], Math.abs(high[i] - close[i-1]), Math.abs(low[i] - close[i-1])));
-  }
-  const atr = sma(tr, n);
-  const atrPct = atr.map((a, i) => (a !== null) ? a / close[i] * 100 : null);
-  return {tr, atr, atrPct};
-}
-
-// ===== Chart Renderers =====
-const commonLayout = m => ({
-  margin: {t:28,l:45,r:15,b:25},
-  plot_bgcolor:'#fff', paper_bgcolor:'#fff',
-  xaxis:{gridcolor:'#f0f0f0', showticklabels:false},
-  yaxis:{gridcolor:'#f0f0f0'},
-  showlegend:false, height:m||260,
-  font:{family:'Microsoft YaHei, sans-serif', size:10},
-  dragmode:'pan'
-});
+// ===== Renderers =====
+const baseLayout = m => ({margin:{t:24,l:40,r:12,b:22},plot_bgcolor:'#fff',paper_bgcolor:'#fff',xaxis:{gridcolor:'#f0f0f0',showticklabels:false},yaxis:{gridcolor:'#f0f0f0'},showlegend:false,height:m||260,font:{family:'Microsoft YaHei, sans-serif',size:9.5},dragmode:'pan'});
 
 function renderMACD(d, p) {
-  const dates = d.dates, close = d.close;
-  const {dif, dea, hist} = calcMACD(close, p.fast, p.slow, p.sig);
-
-  const hColors = hist.map((h, i) => {
-    if (h === null) return '#ccc';
-    if (i === 0) return h >= 0 ? '#e74c3c' : '#27ae60';
-    return h >= hist[i-1] ? '#e74c3c' : '#27ae60';
-  });
-
-  const layout = {
-    ...commonLayout(240),
-    yaxis2:{overlaying:'y',side:'right',gridcolor:'#f0f0f0'},
-    shapes:[{type:'line',x0:0,x1:1,xref:'paper',y0:0,y1:0,yref:'y2',line:{dash:'dash',color:'#aaa'}}]
-  };
-
-  const traces = [
-    {x:dates, y:close, type:'scatter', mode:'lines', line:{color:'#333', width:1.2}, yaxis:'y'},
-    {x:dates, y:dif, type:'scatter', mode:'lines', line:{color:'#3498db', width:1.2}, yaxis:'y2'},
-    {x:dates, y:dea, type:'scatter', mode:'lines', line:{color:'#f39c12', width:1.2}, yaxis:'y2'},
-    {x:dates, y:hist, type:'bar', marker:{color:hColors}, yaxis:'y2', opacity:0.6}
-  ];
-
-  // Signals
-  for (let i = 1; i < dif.length; i++) {
-    if (dif[i] !== null && dea[i] !== null && dif[i-1] !== null && dea[i-1] !== null) {
-      if (dif[i-1] <= dea[i-1] && dif[i] > dea[i]) {
-        traces.push({x:[dates[i]], y:[close[i]], type:'scatter', mode:'markers+text',
-          marker:{color:'#e74c3c', symbol:'triangle-up', size:10}, text:['金叉'], textposition:'top center',
-          textfont:{size:9,color:'#e74c3c'}, yaxis:'y', showlegend:false});
-      } else if (dif[i-1] >= dea[i-1] && dif[i] < dea[i]) {
-        traces.push({x:[dates[i]], y:[close[i]], type:'scatter', mode:'markers+text',
-          marker:{color:'#27ae60', symbol:'triangle-down', size:10}, text:['死叉'], textposition:'bottom center',
-          textfont:{size:9,color:'#27ae60'}, yaxis:'y', showlegend:false});
-      }
+  const {dif,dea,hist}=calcMACD(d.close,p.fast,p.slow,p.sig);
+  const hc=hist.map((h,i)=>{if(h==null)return'#ccc';if(i===0)return h>=0?'#e74c3c':'#27ae60';return h>=hist[i-1]?'#e74c3c':'#27ae60';});
+  const ly={...baseLayout(250),yaxis2:{overlaying:'y',side:'right',gridcolor:'#f0f0f0'},shapes:[{type:'line',x0:0,x1:1,xref:'paper',y0:0,y1:0,yref:'y2',line:{dash:'dash',color:'#aaa'}}]};
+  const tr=[{x:d.dates,y:d.close,type:'scatter',mode:'lines',line:{color:'#333',width:1},yaxis:'y'},
+    {x:d.dates,y:dif,type:'scatter',mode:'lines',line:{color:'#3498db',width:1.1},yaxis:'y2'},
+    {x:d.dates,y:dea,type:'scatter',mode:'lines',line:{color:'#f39c12',width:1.1},yaxis:'y2'},
+    {x:d.dates,y:hist,type:'bar',marker:{color:hc},yaxis:'y2',opacity:.55}];
+  for(let i=1;i<dif.length;i++){
+    if(dif[i]!=null&&dea[i]!=null&&dif[i-1]!=null&&dea[i-1]!=null){
+      if(dif[i-1]<=dea[i-1]&&dif[i]>dea[i]) tr.push({x:[d.dates[i]],y:[d.close[i]],type:'scatter',mode:'markers+text',marker:{color:'#e74c3c',symbol:'triangle-up',size:9},text:['金叉'],textposition:'top center',textfont:{size:8,color:'#e74c3c'},yaxis:'y',showlegend:false});
+      else if(dif[i-1]>=dea[i-1]&&dif[i]<dea[i]) tr.push({x:[d.dates[i]],y:[d.close[i]],type:'scatter',mode:'markers+text',marker:{color:'#27ae60',symbol:'triangle-down',size:9},text:['死叉'],textposition:'bottom center',textfont:{size:8,color:'#27ae60'},yaxis:'y',showlegend:false});
     }
   }
-
-  Plotly.react('chartMacd', traces, layout, {displayModeBar:false});
-  document.getElementById('macdBadge').textContent = `快线${p.fast}·慢线${p.slow}·信号${p.sig}`;
+  Plotly.react('chartMacd',tr,ly,{displayModeBar:false});
+  document.getElementById('macdBadge').textContent=`快${p.fast}·慢${p.slow}·信${p.sig}`;
 }
 
 function renderBB(d, p) {
-  const dates = d.dates, close = d.close;
-  const {mid, upper, lower} = calcBB(close, p.n, p.k);
-
-  const clrUp = '#e74c3c', clrDn = '#27ae60';
-  const trace = {
-    x: dates, open: d.open, high: d.high, low: d.low, close: d.close,
-    type: 'candlestick',
-    increasing: {line:{color:clrUp}, fillcolor:clrUp},
-    decreasing: {line:{color:clrDn}, fillcolor:clrDn}
-  };
-
-  const layout = commonLayout(240);
-  Plotly.react('chartBb', [
-    trace,
-    {x:dates, y:upper, type:'scatter', mode:'lines', line:{color:'#e74c3c', dash:'dash', width:1}},
-    {x:dates, y:mid, type:'scatter', mode:'lines', line:{color:'#3498db', width:1.3}},
-    {x:dates, y:lower, type:'scatter', mode:'lines', line:{color:'#27ae60', dash:'dash', width:1}, fill:'tonexty', fillcolor:'rgba(155,89,182,0.06)'}
-  ], layout, {displayModeBar:false});
-  document.getElementById('bbBadge').textContent = `周期${p.n}·${p.k.toFixed(1)}σ`;
+  const {mid,upper,lower}=calcBB(d.close,p.n,p.k);
+  Plotly.react('chartBb',[
+    {x:d.dates,open:d.open,high:d.high,low:d.low,close:d.close,type:'candlestick',increasing:{line:{color:'#e74c3c'},fillcolor:'#e74c3c'},decreasing:{line:{color:'#27ae60'},fillcolor:'#27ae60'}},
+    {x:d.dates,y:upper,type:'scatter',mode:'lines',line:{color:'#e74c3c',dash:'dash',width:.8}},
+    {x:d.dates,y:mid,type:'scatter',mode:'lines',line:{color:'#3498db',width:1.2}},
+    {x:d.dates,y:lower,type:'scatter',mode:'lines',line:{color:'#27ae60',dash:'dash',width:.8},fill:'tonexty',fillcolor:'rgba(155,89,182,.05)'}
+  ],baseLayout(250),{displayModeBar:false});
+  document.getElementById('bbBadge').textContent=`${p.n}日·${p.k.toFixed(1)}σ`;
 }
 
 function renderRSI(d, p) {
-  const dates = d.dates;
-  const rsi = calcRSI(d.close, p.n);
-
-  const layout = {
-    ...commonLayout(240),
-    yaxis:{gridcolor:'#f0f0f0', range:[0,100]},
-    shapes:[
-      {type:'rect',x0:0,x1:1,xref:'paper',y0:p.ob,y1:100,yref:'y',fillcolor:'rgba(231,76,60,0.07)',line:{width:0}},
-      {type:'rect',x0:0,x1:1,xref:'paper',y0:0,y1:p.os,yref:'y',fillcolor:'rgba(39,174,96,0.07)',line:{width:0}},
-      {type:'line',x0:0,x1:1,xref:'paper',y0:p.ob,y1:p.ob,yref:'y',line:{dash:'dash',color:'#e74c3c',width:.8}},
-      {type:'line',x0:0,x1:1,xref:'paper',y0:p.os,y1:p.os,yref:'y',line:{dash:'dash',color:'#27ae60',width:.8}}
-    ],
-    annotations:[
-      {x:0.02,y:p.ob+6,xref:'paper',yref:'y',text:'超买',showarrow:false,font:{size:10,color:'#e74c3c'}},
-      {x:0.02,y:p.os-6,xref:'paper',yref:'y',text:'超卖',showarrow:false,font:{size:10,color:'#27ae60'}}
-    ]
-  };
-
-  Plotly.react('chartRsi', [
-    {x:dates, y:rsi, type:'scatter', mode:'lines', line:{color:'#9b59b6', width:1.6}, fill:'tozeroy', fillcolor:'rgba(155,89,182,0.05)'}
-  ], layout, {displayModeBar:false});
-  document.getElementById('rsiBadge').textContent = `周期${p.n}·超买${p.ob}·超卖${p.os}`;
+  const rsi=calcRSI(d.close,p.n);
+  const ly={...baseLayout(250),yaxis:{gridcolor:'#f0f0f0',range:[0,100]},shapes:[{type:'rect',x0:0,x1:1,xref:'paper',y0:p.ob,y1:100,yref:'y',fillcolor:'rgba(231,76,60,.06)',line:{width:0}},{type:'rect',x0:0,x1:1,xref:'paper',y0:0,y1:p.os,yref:'y',fillcolor:'rgba(39,174,96,.06)',line:{width:0}},{type:'line',x0:0,x1:1,xref:'paper',y0:p.ob,y1:p.ob,yref:'y',line:{dash:'dash',color:'#e74c3c',width:.7}},{type:'line',x0:0,x1:1,xref:'paper',y0:p.os,y1:p.os,yref:'y',line:{dash:'dash',color:'#27ae60',width:.7}}],annotations:[{x:.02,y:p.ob+7,xref:'paper',yref:'y',text:'超买',showarrow:false,font:{size:9,color:'#e74c3c'}},{x:.02,y:p.os-7,xref:'paper',yref:'y',text:'超卖',showarrow:false,font:{size:9,color:'#27ae60'}}]};
+  Plotly.react('chartRsi',[{x:d.dates,y:rsi,type:'scatter',mode:'lines',line:{color:'#e67e22',width:1.4}}],ly,{displayModeBar:false});
+  document.getElementById('rsiBadge').textContent=`${p.n}日·超${p.ob}/${p.os}`;
 }
 
 function renderATR(d, p) {
-  const dates = d.dates;
-  const {atr, atrPct} = calcATR(d.high, d.low, d.close, p.n);
-  const values = p.type === 'pct' ? atrPct : atr;
-
-  const layout = {
-    ...commonLayout(240),
-    yaxis:{gridcolor:'#f0f0f0', title:{text:p.type==='pct'?'ATR %':'ATR',font:{size:10}}}
-  };
-
-  Plotly.react('chartAtr', [
-    {x:dates, y:values, type:'scatter', mode:'lines', line:{color:'#e67e22', width:1.5}, fill:'tozeroy', fillcolor:'rgba(230,126,34,0.08)'}
-  ], layout, {displayModeBar:false});
-  document.getElementById('atrBadge').textContent = `周期${p.n}·${p.type==='pct'?'ATR%':'ATR'}`;
-}
-
-function renderAll() {
-  if (!currentData) return;
-  const d = currentData;
-  renderMACD(d, params.macd);
-  renderBB(d, params.bb);
-  renderRSI(d, params.rsi);
-  renderATR(d, params.atr);
-  updateStatus(d);
+  const {atr,atrPct}=calcATR(d.high,d.low,d.close,p.n);
+  Plotly.react('chartAtr',[{x:d.dates,y:p.type==='pct'?atrPct:atr,type:'scatter',mode:'lines',line:{color:'#27ae60',width:1.4},fill:'tozeroy',fillcolor:'rgba(39,174,96,.06)'}],{...baseLayout(250),yaxis:{gridcolor:'#f0f0f0',title:{text:p.type==='pct'?'ATR %':'ATR',font:{size:9}}}},{displayModeBar:false});
+  document.getElementById('atrBadge').textContent=`${p.n}日·${p.type==='pct'?'ATR%':'ATR'}`;
 }
 
 // ===== Signals =====
 function countSignals(d) {
-  const p = params.macd;
-  const {dif, dea} = calcMACD(d.close, p.fast, p.slow, p.sig);
-  const rsi = calcRSI(d.close, params.rsi.n);
-  let gc = 0, dc = 0, ob = 0, os = 0;
-  for (let i = 1; i < dif.length; i++) {
-    if (dif[i] !== null && dea[i] !== null && dif[i-1] !== null && dea[i-1] !== null) {
-      if (dif[i-1] <= dea[i-1] && dif[i] > dea[i]) gc++;
-      if (dif[i-1] >= dea[i-1] && dif[i] < dea[i]) dc++;
+  const {dif,dea}=calcMACD(d.close,params.macd.fast,params.macd.slow,params.macd.sig);
+  const rsi=calcRSI(d.close,params.rsi.n);
+  let gc=0,dc=0,ob=0,os=0;
+  for(let i=1;i<dif.length;i++){
+    if(dif[i]!=null&&dea[i]!=null&&dif[i-1]!=null&&dea[i-1]!=null){
+      if(dif[i-1]<=dea[i-1]&&dif[i]>dea[i])gc++;
+      if(dif[i-1]>=dea[i-1]&&dif[i]<dea[i])dc++;
     }
-    if (rsi[i] !== null) {
-      if (rsi[i] > params.rsi.ob) ob++;
-      if (rsi[i] < params.rsi.os) os++;
-    }
+    if(rsi[i]!=null){if(rsi[i]>params.rsi.ob)ob++;if(rsi[i]<params.rsi.os)os++;}
   }
-  return {gc, dc, ob, os};
+  return {gc,dc,ob,os};
 }
 
-function updateStatus(d) {
-  const s = countSignals(d);
-  document.getElementById('statDate').textContent =
-    `${d.name || d.code} · ${d.dates.length}条 · ${d.dates[0]} ~ ${d.dates[d.dates.length-1]}`;
-  document.getElementById('statSignal').innerHTML =
-    `<span class="good">MACD金叉 ${s.gc}次</span>
-     <span class="warn">死叉 ${s.dc}次</span>
-     <span class="good">RSI超买 ${s.ob}次</span>
-     <span class="warn">超卖 ${s.os}次</span>`;
+function renderAll() {
+  if(!currentData)return;
+  const d=currentData;
+  renderMACD(d,params.macd); renderBB(d,params.bb); renderRSI(d,params.rsi); renderATR(d,params.atr);
+  const {gc,dc,ob,os}=countSignals(d);
+  document.getElementById('statDate').textContent=`${d.name||d.code} · ${d.dates.length}条 · ${d.dates[0]} ~ ${d.dates[d.dates.length-1]}`;
+  document.getElementById('statSignal').innerHTML=`<span class="good">金叉${gc}次</span> <span class="warn">死叉${dc}次</span> <span class="good">超买${ob}次</span> <span class="warn">超卖${os}次</span>`;
 }
 
-// ===== Data Loading =====
-function parseEmbeddedData(raw) {
-  const parts = raw.split(';');
-  const dates=[], open=[], high=[], low=[], close=[], vol=[];
-  for (const p of parts) {
-    const [d, o, h, l, c, v] = p.split(',');
-    dates.push(d); open.push(+o); high.push(+h); low.push(+l); close.push(+c); vol.push(+v);
-  }
-  return {dates, open, high, low, close, vol};
+// ===== Data =====
+function parseEmbedded(raw) {
+  const ps=raw.split(';'),dt=[],op=[],hi=[],lo=[],cl=[],vo=[];
+  for(const p of ps){const[a,o,h,l,c,v]=p.split(',');dt.push(a);op.push(+o);hi.push(+h);lo.push(+l);cl.push(+c);vo.push(+v);}
+  return {dates:dt,open:op,high:hi,low:lo,close:cl,vol:vo};
 }
 
 function loadEmbedded(code) {
-  const info = EMBEDDED_DATA[code];
-  if (!info) return;
-  currentData = {...parseEmbeddedData(info.data), name: info.name, code: code};
-  document.querySelectorAll('.stock-btn').forEach(b => b.classList.remove('active'));
+  const info=EMBEDDED_DATA[code]; if(!info)return;
+  currentData={...parseEmbedded(info.data),name:info.name,code};
+  document.querySelectorAll('.stock-btn').forEach(b=>b.classList.remove('active'));
   event.target.classList.add('active');
   document.getElementById('uploadBox').classList.remove('loaded');
-  document.getElementById('nav-file').textContent = `${code} ${info.name}`;
-  document.getElementById('nav-rows').textContent = `${currentData.dates.length} 条`;
+  document.getElementById('nav-file').textContent=`${code} ${info.name}`;
+  document.getElementById('nav-rows').textContent=`${currentData.dates.length} 条`;
   renderAll();
 }
 
-function handleFileUpload(evt) {
-  const file = evt.target.files[0];
-  if (file) parseCSV(file);
-}
+function handleFileUpload(evt){const f=evt.target.files[0];if(f)parseCSV(f);}
 
 function parseCSV(file) {
-  const reader = new FileReader();
-  reader.onload = e => {
-    const text = e.target.result;
-    const lines = text.trim().split('\n');
-    const header = lines[0].toLowerCase();
-
-    // 根据表头自动检测列位置
-    const cols = header.split(',');
-    const dateIdx = cols.findIndex(c => c.includes('trade_date') || c.includes('date'));
-    const openIdx = cols.findIndex(c => c.includes('open'));
-    const highIdx = cols.findIndex(c => c.includes('high'));
-    const lowIdx  = cols.findIndex(c => c.includes('low'));
-    const closeIdx= cols.findIndex(c => c.includes('close'));
-    const volIdx  = cols.findIndex(c => c.includes('vol'));
-
-    if (dateIdx < 0 || closeIdx < 0) {
-      alert('CSV格式错误：缺少 trade_date 或 close 列');
-      return;
-    }
-
-    const dates=[], open=[], high=[], low=[], close=[], vol=[];
-    for (let i = 1; i < lines.length; i++) {
-      const vals = lines[i].split(',');
-      if (vals.length < Math.max(dateIdx,closeIdx)+1) continue;
-      dates.push(vals[dateIdx].trim());
-      close.push(+vals[closeIdx]);
-      open.push(openIdx >=0 ? +vals[openIdx] : +vals[closeIdx]);
-      high.push(highIdx >=0 ? +vals[highIdx] : +vals[closeIdx]);
-      low.push(lowIdx >=0 ? +vals[lowIdx] : +vals[closeIdx]);
-      vol.push(volIdx >=0 ? +vals[volIdx] : 0);
-    }
-
-    currentData = {dates, open, high, low, close, vol, name: file.name.replace('.csv',''), code: 'FILE'};
-    document.querySelectorAll('.stock-btn').forEach(b => b.classList.remove('active'));
+  const r=new FileReader();
+  r.onload=e=>{
+    const ls=e.target.result.trim().split('\n'),hdr=ls[0].toLowerCase().split(',');
+    const di=hdr.findIndex(c=>c.includes('trade_date')||c.includes('date'));
+    const oi=hdr.findIndex(c=>c.includes('open')),hi=hdr.findIndex(c=>c.includes('high'));
+    const li=hdr.findIndex(c=>c.includes('low')),ci=hdr.findIndex(c=>c.includes('close'));
+    const vi=hdr.findIndex(c=>c.includes('vol'));
+    if(di<0||ci<0){alert('CSV格式错误：缺少日期或收盘价列');return;}
+    const dt=[],op=[],hl=[],lo=[],cl=[],vo=[];
+    for(let i=1;i<ls.length;i++){const vs=ls[i].split(',');if(vs.length<Math.max(di,ci)+1)continue;
+      dt.push(vs[di].trim());cl.push(+vs[ci]);
+      op.push(oi>=0?+vs[oi]:+vs[ci]);hl.push(hi>=0?+vs[hi]:+vs[ci]);
+      lo.push(li>=0?+vs[li]:+vs[ci]);vo.push(vi>=0?+vs[vi]:0);}
+    currentData={dates:dt,open:op,high:hl,low:lo,close:cl,vol:vo,name:file.name.replace('.csv',''),code:'FILE'};
+    document.querySelectorAll('.stock-btn').forEach(b=>b.classList.remove('active'));
     document.getElementById('uploadBox').classList.add('loaded');
-    document.getElementById('nav-file').textContent = `📄 ${file.name}`;
-    document.getElementById('nav-rows').textContent = `${dates.length} 条`;
+    document.getElementById('nav-file').textContent=`📄 ${file.name}`;document.getElementById('nav-rows').textContent=`${dt.length} 条`;
     renderAll();
   };
-  reader.readAsText(file);
+  r.readAsText(file);
 }
 
-// ===== Parameter Sync =====
-let renderTimer = null;
-function onParam(cat, key, val) {
-  params[cat][key] = +val || val;
-  // 同步滑块和数字输入框
-  const map = {
-    'macd.fast': ['macdFast','macdFastN'],
-    'macd.slow': ['macdSlow','macdSlowN'],
-    'macd.sig':  ['macdSig','macdSigN'],
-    'bb.n':      ['bbN','bbNN'],
-    'rsi.n':     ['rsiN','rsiNN'],
-    'rsi.ob':    ['rsiOb','rsiObN'],
-    'rsi.os':    ['rsiOs','rsiOsN'],
-    'atr.n':     ['atrN','atrNN'],
-  };
-  const ids = map[`${cat}.${key}`];
-  if (ids) { ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = val; }); }
+// ===== Param sync =====
+let rt=null;
+function onParam(cat,key,val){params[cat][key]=+val||val;const m={'macd.fast':['macdFast','macdFastN'],'macd.slow':['macdSlow','macdSlowN'],'macd.sig':['macdSig','macdSigN'],'bb.n':['bbN','bbNN'],'rsi.n':['rsiN','rsiNN'],'rsi.ob':['rsiOb','rsiObN'],'rsi.os':['rsiOs','rsiOsN'],'atr.n':['atrN','atrNN']};const ids=m[`${cat}.${key}`];if(ids)ids.forEach(id=>{const el=document.getElementById(id);if(el)el.value=val;});if(rt)clearTimeout(rt);rt=setTimeout(renderAll,250);}
 
-  // Debounced render
-  if (renderTimer) clearTimeout(renderTimer);
-  renderTimer = setTimeout(renderAll, 250);
-}
-
-function resetParams() {
-  params.macd = {fast:12, slow:26, sig:9};
-  params.bb   = {n:20, k:2.0};
-  params.rsi  = {n:14, ob:70, os:30};
-  params.atr  = {n:14, type:'pct'};
-  // 同步所有UI
+function resetParams(){
+  params.macd={fast:12,slow:26,sig:9};params.bb={n:20,k:2};params.rsi={n:14,ob:70,os:30};params.atr={n:14,type:'pct'};
   ['macdFast','macdFastN'].forEach(id=>document.getElementById(id).value=12);
   ['macdSlow','macdSlowN'].forEach(id=>document.getElementById(id).value=26);
   ['macdSig','macdSigN'].forEach(id=>document.getElementById(id).value=9);
@@ -527,16 +377,12 @@ function resetParams() {
   ['rsiOb','rsiObN'].forEach(id=>document.getElementById(id).value=70);
   ['rsiOs','rsiOsN'].forEach(id=>document.getElementById(id).value=30);
   ['atrN','atrNN'].forEach(id=>document.getElementById(id).value=14);
-  document.getElementById('atrType').value='pct';
-  renderAll();
+  document.getElementById('atrType').value='pct';renderAll();
 }
 
-function exportPNG() {
-  const ids = ['chartMacd','chartBb','chartRsi','chartAtr'];
-  ids.forEach(id => {
-    Plotly.downloadImage(id, {format:'png', width:900, height:450, filename:`indicator_${id.replace('chart','')}`});
-  });
-  setTimeout(() => alert('4张图表已下载'), 300);
+function exportPNG(){
+  ['chartMacd','chartBb','chartRsi','chartAtr'].forEach(id=>Plotly.downloadImage(id,{format:'png',width:900,height:450,filename:`indicator_${id.replace('chart','')}`}));
+  setTimeout(()=>alert('4张图表已下载'),300);
 }
 </script>
 </body>
