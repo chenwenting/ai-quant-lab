@@ -84,7 +84,7 @@ def main():
         ("Step 2: Fetch adj_factor", "fetch_adj_factor.py", "--token", token),
         ("Step 3: Calc qfq", "calc_qfq.py"),
         ("Step 4: Build embedded", "build_embedded.py"),
-        ("Step 5: Rebuild HTML", "..\\task04_turtle_strategy\\build_tool_html.py"),
+        ("Step 5: Rebuild HTML", "task04_turtle_strategy/build_tool_html.py"),
     ]
 
     for label, script, *args in steps:
