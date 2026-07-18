@@ -238,6 +238,11 @@ body {
       <div class="chart-box" id="chart-confusion" style="min-height:500px;"></div>
 
       <h3>7.3 综合指标对比</h3>
+      <p style="font-size:12px;color:var(--sub);">从下方下拉菜单选择一个模型，查看该模型在测试集上的全部 5 项指标。</p>
+      <div style="margin-bottom:10px;">
+        <label for="metrics-model-select" style="font-size:12px;color:var(--sub);margin-right:8px;">选择模型:</label>
+        <select id="metrics-model-select" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:#fff;cursor:pointer;"></select>
+      </div>
       <div class="two-col">
         <div id="metrics-table-container"></div>
         <div class="chart-box-sm" id="chart-metrics-bar"></div>
@@ -444,70 +449,84 @@ Plotly.newPlot('chart-y-trend', [{
   const cms = DATA.confusion_matrices;
   const subplots = [];
   const annotations = [];
-  const positions = [
-    { xaxis: 'x', yaxis: 'y' },
-    { xaxis: 'x2', yaxis: 'y' },
-    { xaxis: 'x3', yaxis: 'y' },
-    { xaxis: 'x4', yaxis: 'y2' }
-  ];
-  const domains = [
-    { x: [0.02, 0.46], y: [0.52, 0.98] },
-    { x: [0.54, 0.98], y: [0.52, 0.98] },
-    { x: [0.02, 0.46], y: [0.02, 0.48] },
-    { x: [0.54, 0.98], y: [0.02, 0.48] }
+
+  // 2x2 subplot layout — each subplot gets its own xaxis/yaxis pair
+  // top-left: x/y, top-right: x2/y2, bottom-left: x3/y3, bottom-right: x4/y4
+  const axisMap = [
+    { xaxis: 'x',  yaxis: 'y'  },  // i=0: top-left
+    { xaxis: 'x2', yaxis: 'y2' },  // i=1: top-right
+    { xaxis: 'x3', yaxis: 'y3' },  // i=2: bottom-left
+    { xaxis: 'x4', yaxis: 'y4' },  // i=3: bottom-right
   ];
 
   for (let i = 0; i < cms.length; i++) {
     const cm = cms[i];
-    const total = cm.tn + cm.fp + cm.fn + cm.tp;
+    const am = axisMap[i];
     subplots.push({
       type: 'heatmap',
       z: [[cm.tn, cm.fp], [cm.fn, cm.tp]],
       colorscale: [[0, '#e3f2fd'], [1, '#1565c0']],
       showscale: false,
+      xgap: 3, ygap: 3,
       hovertemplate: 'Actual: %{y}<br>Predicted: %{x}<br>Count: %{z}<extra></extra>',
-      xaxis: 'x' + (i < 2 ? '' : '2') + (i % 2 ? '2' : ''),
-      yaxis: 'y' + (i >= 2 ? '2' : '') + (i % 2 ? '' : '')
+      xaxis: am.xaxis,
+      yaxis: am.yaxis,
     });
+    // 4 numbers in cells
     annotations.push(
-      { x: 0, y: 0, xref: 'x' + (i<2?'':'2')+(i%2?'2':''), yref: 'y'+(i>=2?'2':'')+(i%2?'':''),
-        text: 'TN=' + cm.tn, showarrow: false, font: { size: 14, color: '#333' },
+      { x: 0, y: 0, xref: am.xaxis, yref: am.yaxis, text: 'TN=' + cm.tn,
+        showarrow: false, font: { size: 14, color: '#333', family: 'Microsoft YaHei' },
         xanchor: 'center', yanchor: 'middle' },
-      { x: 1, y: 0, xref: 'x' + (i<2?'':'2')+(i%2?'2':''), yref: 'y'+(i>=2?'2':'')+(i%2?'':''),
-        text: 'FP=' + cm.fp, showarrow: false, font: { size: 14, color: '#333' },
+      { x: 1, y: 0, xref: am.xaxis, yref: am.yaxis, text: 'FP=' + cm.fp,
+        showarrow: false, font: { size: 14, color: '#333', family: 'Microsoft YaHei' },
         xanchor: 'center', yanchor: 'middle' },
-      { x: 0, y: 1, xref: 'x' + (i<2?'':'2')+(i%2?'2':''), yref: 'y'+(i>=2?'2':'')+(i%2?'':''),
-        text: 'FN=' + cm.fn, showarrow: false, font: { size: 14, color: '#333' },
+      { x: 0, y: 1, xref: am.xaxis, yref: am.yaxis, text: 'FN=' + cm.fn,
+        showarrow: false, font: { size: 14, color: '#333', family: 'Microsoft YaHei' },
         xanchor: 'center', yanchor: 'middle' },
-      { x: 1, y: 1, xref: 'x' + (i<2?'':'2')+(i%2?'2':''), yref: 'y'+(i>=2?'2':'')+(i%2?'':''),
-        text: 'TP=' + cm.tp, showarrow: false, font: { size: 14, color: '#fff' },
+      { x: 1, y: 1, xref: am.xaxis, yref: am.yaxis, text: 'TP=' + cm.tp,
+        showarrow: false, font: { size: 14, color: '#fff', family: 'Microsoft YaHei' },
         xanchor: 'center', yanchor: 'middle' },
-      { x: 0.5, y: -0.12, xref: 'x'+(i<2?'':'2')+(i%2?'2':''), yref: 'y'+(i>=2?'2':'')+(i%2?'':''),
-        text: cm.model + ' (Acc=' + cm.accuracy + ')', showarrow: false,
-        font: { size: 11, color: '#333' }, xanchor: 'center' }
     );
+    // Subplot title (above each matrix)
+    annotations.push({
+      x: 0.5, y: 1.15, xref: am.xaxis, yref: am.yaxis,
+      text: '<b>' + cm.model + '</b> <span style="color:#4361ee;">(Acc=' + cm.accuracy + ')</span>',
+      showarrow: false, xanchor: 'center',
+      font: { size: 12, color: '#1a1a2e', family: 'Microsoft YaHei' }
+    });
   }
+
+  const xDomainLeft = [0.04, 0.47];
+  const xDomainRight = [0.56, 0.99];
+  const yDomainTop = [0.55, 0.95];
+  const yDomainBottom = [0.04, 0.44];
 
   Plotly.newPlot('chart-confusion', subplots, {
     ...LAYOUT_DEFAULTS,
-    title: 'Confusion Matrices — 4 Model Comparison',
-    grid: { rows: 2, columns: 2, pattern: 'independent' },
-    xaxis: { tickvals: [0,1], ticktext: ['Pred 0','Pred 1'], domain: [0.02,0.46] },
-    yaxis: { tickvals: [0,1], ticktext: ['Actual 0','Actual 1'], domain: [0.52,0.98] },
-    xaxis2: { tickvals: [0,1], ticktext: ['Pred 0','Pred 1'], domain: [0.54,0.98] },
-    yaxis2: { tickvals: [0,1], ticktext: ['Actual 0','Actual 1'], domain: [0.52,0.98] },
-    xaxis3: { tickvals: [0,1], ticktext: ['Pred 0','Pred 1'], domain: [0.02,0.46] },
-    yaxis3: { tickvals: [0,1], ticktext: ['Actual 0','Actual 1'], domain: [0.02,0.48] },
-    xaxis4: { tickvals: [0,1], ticktext: ['Pred 0','Pred 1'], domain: [0.54,0.98] },
-    yaxis4: { tickvals: [0,1], ticktext: ['Actual 0','Actual 1'], domain: [0.02,0.48] },
+    title: { text: 'Confusion Matrices — 4 Model Comparison', x: 0.5, xanchor: 'center' },
+    // Top-left subplot (LR)
+    xaxis:  { tickvals: [0,1], ticktext: ['Pred 0','Pred 1'], domain: xDomainLeft,   anchor: 'y'  },
+    yaxis:  { tickvals: [0,1], ticktext: ['Actual 0','Actual 1'], domain: yDomainTop, autorange: 'reversed' },
+    // Top-right subplot (DT)
+    xaxis2: { tickvals: [0,1], ticktext: ['Pred 0','Pred 1'], domain: xDomainRight,  anchor: 'y2' },
+    yaxis2: { tickvals: [0,1], ticktext: ['Actual 0','Actual 1'], domain: yDomainTop, autorange: 'reversed' },
+    // Bottom-left subplot (RF)
+    xaxis3: { tickvals: [0,1], ticktext: ['Pred 0','Pred 1'], domain: xDomainLeft,   anchor: 'y3' },
+    yaxis3: { tickvals: [0,1], ticktext: ['Actual 0','Actual 1'], domain: yDomainBottom, autorange: 'reversed' },
+    // Bottom-right subplot (KNN)
+    xaxis4: { tickvals: [0,1], ticktext: ['Pred 0','Pred 1'], domain: xDomainRight,  anchor: 'y4' },
+    yaxis4: { tickvals: [0,1], ticktext: ['Actual 0','Actual 1'], domain: yDomainBottom, autorange: 'reversed' },
     annotations: annotations,
-    height: 550, margin: { l: 40, r: 20, t: 60, b: 80 }
+    showlegend: false,
+    height: 600, margin: { l: 50, r: 20, t: 70, b: 40 }
   }, PLOTLY_CONFIG);
 })();
 
-// ====== STEP 7: METRICS TABLE & BAR ======
+// ====== STEP 7: METRICS TABLE & BAR (with dropdown) ======
 (function() {
   const m = DATA.metrics;
+
+  // Build the metrics table (all models, sorted by AUC)
   let html = '<table class="metrics-table"><thead><tr><th>#</th><th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1</th><th>AUC</th></tr></thead><tbody>';
   m.forEach((r,i) => {
     html += '<tr class="' + (i===0?'best':'') + '"><td>' + (i+1) + '</td><td>' + r.model + '</td>' +
@@ -517,18 +536,49 @@ Plotly.newPlot('chart-y-trend', [{
   html += '</tbody></table>';
   document.getElementById('metrics-table-container').innerHTML = html;
 
-  Plotly.newPlot('chart-metrics-bar', [
-    { type: 'bar', x: m.map(r => r.model), y: m.map(r => r.accuracy),
-      name: 'Accuracy', marker: { color: '#3498db' } },
-    { type: 'bar', x: m.map(r => r.model), y: m.map(r => r.f1),
-      name: 'F1', marker: { color: '#e74c3c' } },
-    { type: 'bar', x: m.map(r => r.model), y: m.map(r => r.auc),
-      name: 'AUC', marker: { color: '#2ecc71' } }
-  ], {
-    ...LAYOUT_DEFAULTS, title: '指标对比',
-    yaxis: { title: 'Score', range: [0.35, 0.6] },
-    legend: { x: 0.75, y: 0.95 }
-  }, PLOTLY_CONFIG);
+  // Populate dropdown
+  const sel = document.getElementById('metrics-model-select');
+  m.forEach((r, i) => {
+    const opt = document.createElement('option');
+    opt.value = r.model;
+    opt.textContent = r.model + (i === 0 ? ' (Best)' : '');
+    sel.appendChild(opt);
+  });
+
+  // Function: render bar chart for a given model
+  function renderMetricsBar(modelName) {
+    const r = m.find(x => x.model === modelName) || m[0];
+    const metricNames = ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'AUC'];
+    const metricKeys  = ['accuracy', 'precision', 'recall', 'f1', 'auc'];
+    const colors      = ['#3498db', '#9b59b6', '#e67e22', '#e74c3c', '#2ecc71'];
+
+    const traces = metricNames.map((name, i) => ({
+      type: 'bar',
+      x: [name],
+      y: [r[metricKeys[i]]],
+      name: name,
+      marker: { color: colors[i] },
+      text: [r[metricKeys[i]].toFixed(4)],
+      textposition: 'outside',
+      textfont: { size: 12, color: '#1a1a2e' },
+      hovertemplate: name + ': %{y:.4f}<extra></extra>',
+    }));
+
+    Plotly.newPlot('chart-metrics-bar', traces, {
+      ...LAYOUT_DEFAULTS,
+      title: { text: '<b>' + r.model + '</b> — 5 项指标', x: 0.5, xanchor: 'center' },
+      yaxis: { title: 'Score', range: [0, 0.7] },
+      xaxis: { title: '' },
+      showlegend: true,
+      legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.18, font: { size: 10 } },
+      margin: { l: 50, r: 20, t: 50, b: 60 },
+    }, PLOTLY_CONFIG);
+  }
+
+  // Default: best model (first in sorted list)
+  renderMetricsBar(m[0].model);
+  // Update on change
+  sel.addEventListener('change', e => renderMetricsBar(e.target.value));
 })();
 
 // ====== STEP 8: FEATURE IMPORTANCE ======
