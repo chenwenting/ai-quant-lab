@@ -95,7 +95,7 @@ tr:hover { background: #fafbfc; }
 @media (max-width: 768px) { .strat-grid { grid-template-columns: 1fr; } }
 .strat-cell { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
 .strat-cell h4 { font-size: 13px; color: var(--dark); margin-bottom: 6px; text-align: center; }
-.strat-cell .v { height: 220px; }
+.strat-cell .v { height: 260px; }
 
 /* Data preview */
 .preview-box { max-height: 180px; overflow: auto; background: #fafbfc; border-radius: 6px; padding: 8px; font-family: 'Courier New', monospace; font-size: 11px; }
@@ -558,37 +558,49 @@ function renderMultiStrategy() {
     };
   }
   
-  const renderBar = (id, values, format, colors) => {
+  const renderBar = (id, values, format, isDD, colors) => {
+    // For drawdown, use absolute values
+    const displayValues = isDD ? values.map(v => Math.abs(v)) : values;
+    const textValues = isDD 
+      ? values.map(v => `${(v*100).toFixed(1)}%`)
+      : (format === 'pct' ? values.map(v => `${(v*100).toFixed(1)}%`) : values.map(v => v.toFixed(2)));
+    const maxVal = Math.max(...displayValues, 0.01);
+    const pad = maxVal * 0.35;
+    
     const traces = [{
       x: ['买入持有', '均线交叉', 'ML策略'],
-      y: values,
+      y: displayValues,
       type: 'bar',
       marker: { color: colors },
-      text: values.map(v => format === 'pct' ? `${(v*100).toFixed(1)}%` : v.toFixed(2)),
+      text: textValues,
       textposition: 'outside',
+      textfont: { size: 12, color: '#2c3e50' },
     }];
     Plotly.newPlot(id, traces, {
-      margin: { t: 20, b: 30, l: 50, r: 20 },
-      yaxis: { tickformat: format === 'pct' ? '.1%' : '.2f' },
+      margin: { t: 30, b: 50, l: 60, r: 30 },
+      yaxis: { 
+        tickformat: format === 'pct' ? '.1%' : '.2f',
+        range: [0, maxVal * 1.5],
+      },
       xaxis: { tickfont: { size: 10 } },
       showlegend: false
     }, { responsive: true, displayModeBar: false });
   };
   
   // Total return
-  renderBar('strat-total', [data['买入持有'].收益, data['均线交叉'].收益, data['ML策略'].收益], 'pct',
+  renderBar('strat-total', [data['买入持有'].收益, data['均线交叉'].收益, data['ML策略'].收益], 'pct', false,
     [STRAT_COLORS['买入持有'], STRAT_COLORS['均线交叉'], STRAT_COLORS['ML策略']]);
   
   // Sharpe
-  renderBar('strat-sharpe', [data['买入持有'].夏普, data['均线交叉'].夏普, data['ML策略'].夏普], 'num',
+  renderBar('strat-sharpe', [data['买入持有'].夏普, data['均线交叉'].夏普, data['ML策略'].夏普], 'num', false,
     [STRAT_COLORS['买入持有'], STRAT_COLORS['均线交叉'], STRAT_COLORS['ML策略']]);
   
-  // Max DD
-  renderBar('strat-mdd', [data['买入持有'].回撤, data['均线交叉'].回撤, data['ML策略'].回撤], 'pct',
+  // Max DD - use absolute values
+  renderBar('strat-mdd', [data['买入持有'].回撤, data['均线交叉'].回撤, data['ML策略'].回撤], 'pct', true,
     [STRAT_COLORS['买入持有'], STRAT_COLORS['均线交叉'], STRAT_COLORS['ML策略']]);
   
   // Trades
-  renderBar('strat-trades', [data['买入持有'].交易, data['均线交叉'].交易, data['ML策略'].交易], 'num',
+  renderBar('strat-trades', [data['买入持有'].交易, data['均线交叉'].交易, data['ML策略'].交易], 'num', false,
     [STRAT_COLORS['买入持有'], STRAT_COLORS['均线交叉'], STRAT_COLORS['ML策略']]);
 }
 
