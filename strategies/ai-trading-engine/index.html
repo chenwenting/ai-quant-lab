@@ -159,6 +159,7 @@ body {
   <a href="#step4" class="step-item">时序划分</a>
   <a href="#step5" class="step-item">训练模型</a>
   <a href="#step6" class="step-item">预测评估</a>
+  <a href="#step7" class="step-item">综合指标</a>
   <a href="#step8" class="step-item">特征重要性</a>
   <a href="#step9" class="step-item">结果总结</a>
 </nav>
@@ -238,8 +239,14 @@ body {
         <div class="chart-box-sm" id="chart-roc"></div>
         <div class="chart-box-sm" id="chart-cm"></div>
       </div>
+    </div>
+  </section>
 
-      <h3>7.3 综合指标对比（全部模型）</h3>
+  <!-- Step 7: 综合指标对比 -->
+  <section id="step7" class="step-section">
+    <h2 class="step-title"><span class="num">7</span> 综合指标对比</h2>
+    <div class="step-body">
+      <p>汇总 4 个模型在测试集上的全部 5 项指标（Accuracy / Precision / Recall / F1 / AUC），按 AUC 降序排列。柱状图展示每个模型在 5 项指标上的得分对比。</p>
       <div class="two-col">
         <div id="metrics-table-container"></div>
         <div class="chart-box-sm" id="chart-metrics-bar"></div>
@@ -518,21 +525,29 @@ Plotly.newPlot('chart-y-trend', [{
   html += '</tbody></table>';
   document.getElementById('metrics-table-container').innerHTML = html;
 
-  // Grouped bar chart: all 4 models, 3 metrics
-  Plotly.newPlot('chart-metrics-bar', [
-    { type: 'bar', x: m.map(r => r.model), y: m.map(r => r.accuracy),
-      name: 'Accuracy', marker: { color: '#3498db' } },
-    { type: 'bar', x: m.map(r => r.model), y: m.map(r => r.f1),
-      name: 'F1-Score', marker: { color: '#e74c3c' } },
-    { type: 'bar', x: m.map(r => r.model), y: m.map(r => r.auc),
-      name: 'AUC', marker: { color: '#2ecc71' } }
-  ], {
+  // Grouped bar chart: all 4 models × 5 metrics
+  const metricKeys  = ['accuracy', 'precision', 'recall', 'f1', 'auc'];
+  const metricNames = ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'AUC'];
+  const metricColors = ['#3498db', '#9b59b6', '#e67e22', '#e74c3c', '#2ecc71'];
+
+  const traces = metricKeys.map((key, i) => ({
+    type: 'bar',
+    x: m.map(r => r.model),
+    y: m.map(r => r[key]),
+    name: metricNames[i],
+    marker: { color: metricColors[i] }
+  }));
+
+  Plotly.newPlot('chart-metrics-bar', traces, {
     ...LAYOUT_DEFAULTS,
-    title: '全部模型 — Accuracy / F1 / AUC',
-    yaxis: { title: 'Score', range: [0.35, 0.62] },
-    legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.2, font: { size: 10 } },
-    margin: { l: 50, r: 20, t: 50, b: 60 },
-    height: 380,
+    title: '全部模型 — 5 项指标对比',
+    yaxis: { title: 'Score', range: [0, 0.7] },
+    barmode: 'group',
+    bargap: 0.25,
+    bargroupgap: 0.05,
+    legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.18, font: { size: 10 } },
+    margin: { l: 50, r: 20, t: 50, b: 70 },
+    height: 400,
   }, PLOTLY_CONFIG);
 })();
 
