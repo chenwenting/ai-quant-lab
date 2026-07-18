@@ -603,16 +603,22 @@ Plotly.newPlot('chart-y-trend', [{
       ? top15.map(f => 16 - f.avg_rank)
       : values;
 
+    // Compute padded x-axis range so the textposition='outside' labels don't get clipped
+    const xMax = Math.max(...xValues);
+    const paddedX = xMax * 1.18;
+    const xTick0 = model.key === '综合' ? 0 : 0;
+
     Plotly.newPlot('chart-importance', [{
       type: 'bar', y: features, x: xValues,
       orientation: 'h', marker: { color: barColors },
-      text: texts, textposition: 'outside',
+      text: texts, textposition: 'outside', textfont: { size: 11 },
+      cliponaxis: false,
       hovertemplate: '%{y}: %{x}<extra></extra>',
     }], {
       ...LAYOUT_DEFAULTS,
       title: '特征重要性 Top 15 — <b>' + model.label + '</b>',
-      xaxis: { title: xTitle },
-      margin: { l: 200, r: 80, t: 55, b: 40 },
+      xaxis: { title: xTitle, range: [xTick0, paddedX] },
+      margin: { l: 200, r: 100, t: 55, b: 40 },
       height: 520,
       showlegend: false,
     }, PLOTLY_CONFIG);
