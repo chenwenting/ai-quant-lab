@@ -258,11 +258,12 @@ body {
   <section id="step8" class="step-section">
     <h2 class="step-title"><span class="num">8</span> 特征重要性</h2>
     <div class="step-body">
-      <p>综合逻辑回归系数、决策树与随机森林内置重要性，取平均排名得到综合特征重要性 Top 15。</p>
-      <div class="two-col">
-        <div class="chart-box" id="chart-importance"></div>
-        <div class="chart-box" id="chart-importance-models"></div>
+      <p>选择下方模型查看对应的特征重要性排名。综合排名取 LR + DT + RF 三模型平均排名。</p>
+      <div style="margin-bottom:10px;">
+        <label for="fi-model-select" style="font-size:12px;color:var(--sub);margin-right:8px;">选择模型:</label>
+        <select id="fi-model-select" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:#fff;cursor:pointer;"></select>
       </div>
+      <div class="chart-box" id="chart-importance" style="min-height:480px;"></div>
     </div>
   </section>
 
@@ -551,36 +552,75 @@ Plotly.newPlot('chart-y-trend', [{
   }, PLOTLY_CONFIG);
 })();
 
-// ====== STEP 8: FEATURE IMPORTANCE ======
+// ====== STEP 8: FEATURE IMPORTANCE (model dropdown) ======
 (function() {
-  const top15 = DATA.feature_importance.slice(0, 15).reverse();
-  const colors = top15.map(f => f.avg_rank < 5 ? '#e74c3c' : '#3498db');
+  const fi = DATA.feature_importance;
+  const models = [
+    { key: '综合',  field: 'avg_rank', color: '#4361ee', label: '综合排名 (LR+DT+RF 平均)' },
+    { key: 'LR',    field: 'lr',       color: '#2c3e50', label: '逻辑回归系数 (绝对值)' },
+    { key: 'DT',    field: 'dt',       color: '#e74c3c', label: '决策树内置重要性' },
+    { key: 'RF',    field: 'rf',       color: '#3498db', label: '随机森林内置重要性' },
+    { key: 'KNN',   field: 'knn',      color: '#e67e22', label: 'KNN 排列重要性' },
+  ];
 
-  Plotly.newPlot('chart-importance', [{
-    type: 'bar', y: top15.map(f => f.feature), x: top15.map(f => 16 - f.avg_rank),
-    orientation: 'h', marker: { color: colors },
-    text: top15.map(f => 'Rank ' + f.avg_rank), textposition: 'outside',
-  }], {
-    ...LAYOUT_DEFAULTS, title: '综合特征重要性 Top 15<br><sub>LR + DT + RF 平均排名</sub>',
-    xaxis: { title: '综合得分 (16 - 平均排名)' },
-    margin: { l: 180, r: 60, t: 60, b: 40 }, height: 480
-  }, PLOTLY_CONFIG);
+  // Populate dropdown
+  const sel = document.getElementById('fi-model-select');
+  models.forEach((m, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = m.label;
+    if (i === 0) opt.selected = true;
+    sel.appendChild(opt);
+  });
 
-  // Per-model importance
-  const allFi = DATA.feature_importance;
-  const top10All = allFi.slice(0, 10);
-  Plotly.newPlot('chart-importance-models', [
-    { type: 'bar', y: top10All.map(f => f.feature), x: top10All.map(f => f.lr),
-      orientation: 'h', name: 'LR 系数', marker: { color: '#2c3e50' } },
-    { type: 'bar', y: top10All.map(f => f.feature), x: top10All.map(f => f.dt),
-      orientation: 'h', name: 'DT 重要性', marker: { color: '#e74c3c' } },
-    { type: 'bar', y: top10All.map(f => f.feature), x: top10All.map(f => f.rf),
-      orientation: 'h', name: 'RF 重要性', marker: { color: '#3498db' } }
-  ], {
-    ...LAYOUT_DEFAULTS, title: '各模型 Top 10 特征重要性',
-    margin: { l: 160, r: 20, t: 50, b: 40 }, height: 400,
-    legend: { x: 0.65, y: 0.95 }
-  }, PLOTLY_CONFIG);
+  function renderFI(idx) {
+    const model = models[idx];
+    // Sort by the model's importance field, take top 15, reverse for horizontal bar
+    let top15 = [...fi].sort((a, b) => {
+      // For avg_rank, lower is better. For others, higher is better.
+      if (model.key === '综合') return a[model.field] - b[model.field];
+      return b[model.field] - a[model.field];
+    }).slice(0, 15).reverse();
+
+    const values = top15.map(f => f[model.field]);
+    const features = top15.map(f => f.feature);
+    const barColors = top15.map((f, i) => {
+      if (model.key === '综合') return f.avg_rank < 5 ? '#e74c3c' : '#3498db';
+      const max = Math.max(...values);
+      return values[i] > max * 0.5 ? model.color : '#aaa';
+    });
+
+    // For 综合 ranking: show rank number; for others: show value
+    const texts = model.key === '综合'
+      ? top15.map(f => 'Rank ' + f.avg_rank)
+      : top15.map(f => f[model.field].toFixed(4));
+
+    const xTitle = model.key === '综合'
+      ? '综合得分 (16 - 平均排名)'
+      : model.field.toUpperCase() + ' Score';
+
+    const xValues = model.key === '综合'
+      ? top15.map(f => 16 - f.avg_rank)
+      : values;
+
+    Plotly.newPlot('chart-importance', [{
+      type: 'bar', y: features, x: xValues,
+      orientation: 'h', marker: { color: barColors },
+      text: texts, textposition: 'outside',
+      hovertemplate: '%{y}: %{x}<extra></extra>',
+    }], {
+      ...LAYOUT_DEFAULTS,
+      title: '特征重要性 Top 15 — <b>' + model.label + '</b>',
+      xaxis: { title: xTitle },
+      margin: { l: 200, r: 80, t: 55, b: 40 },
+      height: 520,
+      showlegend: false,
+    }, PLOTLY_CONFIG);
+  }
+
+  // Default: show 综合 ranking
+  renderFI(0);
+  sel.addEventListener('change', () => renderFI(parseInt(sel.value)));
 })();
 
 // ====== STEP 9: CONCLUSION ======
