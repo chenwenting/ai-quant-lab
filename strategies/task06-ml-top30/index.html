@@ -79,6 +79,40 @@ nav .brand { font-weight:700; font-size:16px; color:#fff; }
 .mcard .metric .val { font-size: 16px; font-weight: 700; }
 .mcard .metric .lbl { font-size: 10px; color: var(--sub); }
 
+/* Flow diagram */
+.flow-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.flow-box { background: var(--primary); color: #fff; padding: 12px 14px; border-radius: 8px; text-align: left; position: relative; }
+.flow-box::after { content: '\2192'; position: absolute; right: -18px; top: 50%; transform: translateY(-50%); color: var(--primary); font-weight: 700; font-size: 18px; }
+.flow-box:last-child::after { content: ''; }
+.flow-init { background: #d35400; }
+.flow-signal { background: #c0392b; }
+.flow-pos { background: #c0392b; grid-column: 2 / 3; }
+.flow-back { background: #d35400; }
+.flow-metric { background: #d35400; }
+.flow-plot { background: #d35400; }
+.flow-box .step { font-family: 'Courier New', monospace; font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.flow-box .desc { font-size: 11px; opacity: 0.95; line-height: 1.4; }
+@media (max-width: 768px) { .flow-grid { grid-template-columns: 1fr; } .flow-box::after { content: '\2193'; right: 50%; top: 100%; transform: translate(50%, 0); } .flow-box:last-child::after { content: ''; } }
+
+/* Param cards */
+.param-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 12px; }
+.param-card { background: linear-gradient(135deg, #fff8f0 0%, #fff 100%); border: 1px solid #f5cba7; border-radius: 8px; padding: 14px; text-align: center; }
+.param-icon { font-size: 28px; margin-bottom: 4px; }
+.param-title { font-size: 14px; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+.param-desc { font-size: 11px; color: var(--sub); line-height: 1.4; }
+
+/* Param detail */
+.param-detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+.param-detail-card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+.param-cat { font-size: 13px; font-weight: 700; color: var(--dark); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.cat-icon { margin-right: 4px; }
+.param-row { display: grid; grid-template-columns: 1.2fr 0.5fr 1.5fr; align-items: center; padding: 8px 0; border-bottom: 1px dashed #f0f0f0; }
+.param-row:last-child { border-bottom: none; }
+.pk { font-family: 'Courier New', monospace; font-size: 12px; color: var(--sub); font-weight: 600; }
+.pv-orange { font-size: 22px; font-weight: 700; color: #e67e22; text-align: center; }
+.pv-green { font-size: 22px; font-weight: 700; color: #27ae60; text-align: center; }
+.pl { font-size: 12px; color: var(--text); }
+
 /* Tables */
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th, td { padding: 9px 11px; text-align: left; border-bottom: 1px solid var(--border); }
@@ -156,6 +190,59 @@ footer { text-align: center; padding: 24px; color: var(--sub); font-size: 12px; 
     <div id="dataPreview" class="hidden" style="margin-top:12px">
       <h4 style="font-size:13px;margin-bottom:6px">📋 数据预览（前 5 行）</h4>
       <div class="preview-box" id="previewBox"></div>
+    </div>
+  </div>
+
+  <!-- Step 1.5: ML Framework + Key Parameters -->
+  <div class="card" id="framework-card">
+    <h2><span class="num">📐</span> ML 策略完整框架</h2>
+    <p style="font-size:13px;color:var(--sub);margin-bottom:16px">本系统采用模块化的 <b>MLTradingStrategy</b> 框架，将模型预测与交易执行解耦，便于迭代优化</p>
+    
+    <!-- Framework flow -->
+    <div style="background:#fafbfc;border-radius:10px;padding:20px;margin-bottom:20px">
+      <div style="text-align:center;margin-bottom:12px"><b style="color:var(--primary)">MLTradingStrategy 类结构</b></div>
+      <div class="flow-grid">
+        <div class="flow-box flow-init"><div class="step">__init__</div><div class="desc">初始化策略参数 (阈值、仓位、止损止盈、过滤条件)</div></div>
+        <div class="flow-box flow-signal"><div class="step">generate_signals</div><div class="desc">模型预测 → 概率 → 双阈值信号 → 过滤</div></div>
+        <div class="flow-box flow-pos"><div class="step">calculate_position_size</div><div class="desc">根据概率计算仓位</div></div>
+        <div class="flow-box flow-back"><div class="step">backtest</div><div class="desc">执行回测 (止损→止盈→卖出→买入)</div></div>
+        <div class="flow-box flow-metric"><div class="step">calculate_metrics</div><div class="desc">计算绩效指标</div></div>
+        <div class="flow-box flow-plot"><div class="step">plot_results</div><div class="desc">可视化回测结果</div></div>
+      </div>
+    </div>
+    
+    <!-- Key parameter cards -->
+    <div style="margin-bottom:8px"><b style="color:var(--dark)">🔑 关键参数卡片</b></div>
+    <div class="param-grid">
+      <div class="param-card"><div class="param-icon">📊</div><div class="param-title">概率阈值</div><div class="param-desc">Entry/Exit 概率阈值 (双阈值 0.6/0.4)</div></div>
+      <div class="param-card"><div class="param-icon">💼</div><div class="param-title">仓位管理</div><div class="param-desc">基于预测概率动态调整持仓权重</div></div>
+      <div class="param-card"><div class="param-icon">🛡</div><div class="param-title">止损止盈</div><div class="param-desc">动态百分比回撤/固定点位 (5%/15%)</div></div>
+      <div class="param-card"><div class="param-icon">🔍</div><div class="param-title">过滤条件</div><div class="param-desc">市场状态、波动率、相关性 (RSI/趋势)</div></div>
+      <div class="param-card"><div class="param-icon">⚙</div><div class="param-title">其他参数</div><div class="param-desc">交易成本、滑点、时间窗口</div></div>
+    </div>
+    
+    <!-- Detailed parameter values -->
+    <div style="margin-top:20px;margin-bottom:8px"><b style="color:var(--dark)">⚙ 策略核心参数一览 (本报告使用值)</b></div>
+    <div class="param-detail-grid">
+      <div class="param-detail-card">
+        <div class="param-cat"><span class="cat-icon">📈</span> 信号参数 (阈值)</div>
+        <div class="param-row"><div class="pk">buy_threshold</div><div class="pv-orange">0.6</div><div class="pl">买入概率阈值</div></div>
+        <div class="param-row"><div class="pk">sell_threshold</div><div class="pv-orange">0.4</div><div class="pl">卖出概率阈值</div></div>
+      </div>
+      <div class="param-detail-card">
+        <div class="param-cat"><span class="cat-icon">🛡</span> 风控参数 (止损止盈) %</div>
+        <div class="param-row"><div class="pk">max_position</div><div class="pv-orange">0.8</div><div class="pl">最大仓位比例 80%</div></div>
+        <div class="param-row"><div class="pk">stop_loss_pct</div><div class="pv-orange">0.05</div><div class="pl">止损比例 5%</div></div>
+        <div class="param-row"><div class="pk">take_profit_pct</div><div class="pv-green">0.15</div><div class="pl">止盈比例 15%</div></div>
+      </div>
+      <div class="param-detail-card">
+        <div class="param-cat"><span class="cat-icon">🔍</span> 过滤参数 (RSI/趋势)</div>
+        <div class="param-row"><div class="pk">use_rsi_filter</div><div class="pv-green">True</div><div class="pl">RSI 过滤开启</div></div>
+        <div class="param-row"><div class="pk">use_trend_filter</div><div class="pv-green">True</div><div class="pl">趋势过滤开启</div></div>
+      </div>
+    </div>
+    <div style="margin-top:12px;padding:10px;background:#eaf2f8;border-radius:6px;font-size:12px;color:#2980b9;text-align:center">
+      💡 这些参数都可通过网格搜索优化
     </div>
   </div>
 
