@@ -1,0 +1,19 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# IDE
+.vscode/
+.idea/
+
+# WorkBuddy
+.workbuddy/
+plans/
+
+# Temp
+deploy/
+
+# OS
+.DS_Store
+Thumbs.db
