@@ -133,6 +133,11 @@ body {
   font-family:Consolas,monospace; font-size:11px; overflow-x:auto; margin-bottom:10px;
   white-space:pre; line-height:1.6;
 }
+/* 2x2 confusion matrix grid */
+.cm-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:10px;
+}
+@media (max-width:768px) { .cm-grid { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -235,7 +240,12 @@ body {
 
       <h3>7.2 混淆矩阵</h3>
       <p>展示各模型在测试集上的分类结果：真正例(TP)、真负例(TN)、假正例(FP)、假负例(FN)。</p>
-      <div class="chart-box" id="chart-confusion" style="min-height:500px;"></div>
+      <div class="cm-grid">
+        <div class="chart-box-sm" id="chart-cm-0"></div>
+        <div class="chart-box-sm" id="chart-cm-1"></div>
+        <div class="chart-box-sm" id="chart-cm-2"></div>
+        <div class="chart-box-sm" id="chart-cm-3"></div>
+      </div>
 
       <h3>7.3 综合指标对比</h3>
       <p style="font-size:12px;color:var(--sub);">从下方下拉菜单选择一个模型，查看该模型在测试集上的全部 5 项指标。</p>
@@ -444,82 +454,53 @@ Plotly.newPlot('chart-y-trend', [{
   }, PLOTLY_CONFIG);
 })();
 
-// ====== STEP 7: CONFUSION MATRICES ======
+// ====== STEP 7: CONFUSION MATRICES (4 individual charts) ======
 (function() {
   const cms = DATA.confusion_matrices;
-  const subplots = [];
-  const annotations = [];
-
-  // 2x2 subplot layout — each subplot gets its own xaxis/yaxis pair
-  // top-left: x/y, top-right: x2/y2, bottom-left: x3/y3, bottom-right: x4/y4
-  const axisMap = [
-    { xaxis: 'x',  yaxis: 'y'  },  // i=0: top-left
-    { xaxis: 'x2', yaxis: 'y2' },  // i=1: top-right
-    { xaxis: 'x3', yaxis: 'y3' },  // i=2: bottom-left
-    { xaxis: 'x4', yaxis: 'y4' },  // i=3: bottom-right
-  ];
-
   for (let i = 0; i < cms.length; i++) {
     const cm = cms[i];
-    const am = axisMap[i];
-    subplots.push({
+    const z = [[cm.tn, cm.fp], [cm.fn, cm.tp]];
+
+    Plotly.newPlot('chart-cm-' + i, [{
       type: 'heatmap',
-      z: [[cm.tn, cm.fp], [cm.fn, cm.tp]],
+      z: z,
       colorscale: [[0, '#e3f2fd'], [1, '#1565c0']],
       showscale: false,
-      xgap: 3, ygap: 3,
-      hovertemplate: 'Actual: %{y}<br>Predicted: %{x}<br>Count: %{z}<extra></extra>',
-      xaxis: am.xaxis,
-      yaxis: am.yaxis,
-    });
-    // 4 numbers in cells
-    annotations.push(
-      { x: 0, y: 0, xref: am.xaxis, yref: am.yaxis, text: 'TN=' + cm.tn,
-        showarrow: false, font: { size: 14, color: '#333', family: 'Microsoft YaHei' },
-        xanchor: 'center', yanchor: 'middle' },
-      { x: 1, y: 0, xref: am.xaxis, yref: am.yaxis, text: 'FP=' + cm.fp,
-        showarrow: false, font: { size: 14, color: '#333', family: 'Microsoft YaHei' },
-        xanchor: 'center', yanchor: 'middle' },
-      { x: 0, y: 1, xref: am.xaxis, yref: am.yaxis, text: 'FN=' + cm.fn,
-        showarrow: false, font: { size: 14, color: '#333', family: 'Microsoft YaHei' },
-        xanchor: 'center', yanchor: 'middle' },
-      { x: 1, y: 1, xref: am.xaxis, yref: am.yaxis, text: 'TP=' + cm.tp,
-        showarrow: false, font: { size: 14, color: '#fff', family: 'Microsoft YaHei' },
-        xanchor: 'center', yanchor: 'middle' },
-    );
-    // Subplot title (above each matrix)
-    annotations.push({
-      x: 0.5, y: 1.15, xref: am.xaxis, yref: am.yaxis,
-      text: '<b>' + cm.model + '</b> <span style="color:#4361ee;">(Acc=' + cm.accuracy + ')</span>',
-      showarrow: false, xanchor: 'center',
-      font: { size: 12, color: '#1a1a2e', family: 'Microsoft YaHei' }
-    });
+      xgap: 4, ygap: 4,
+      hovertemplate: '真实:%{y} 预测:%{x}<br>数量:%{z}<extra></extra>',
+    }], {
+      ...LAYOUT_DEFAULTS,
+      title: { text: '<b>' + cm.model + '</b> (Acc=' + cm.accuracy + ')', x: 0.5, xanchor: 'center', font: { size: 13 } },
+      xaxis: {
+        tickvals: [0, 1],
+        ticktext: ['<span style="color:#27ae60;">预测跌</span>', '<span style="color:#e74c3c;">预测涨</span>'],
+        side: 'bottom',
+        tickfont: { size: 12 }
+      },
+      yaxis: {
+        tickvals: [0, 1],
+        ticktext: ['<span style="color:#27ae60;">实际跌</span>', '<span style="color:#e74c3c;">实际涨</span>'],
+        autorange: 'reversed',
+        tickfont: { size: 12 }
+      },
+      annotations: [
+        { x: 0, y: 0, text: '<b>TN</b><br>' + cm.tn,
+          showarrow: false, font: { size: 14, color: '#333' },
+          xanchor: 'center', yanchor: 'middle' },
+        { x: 1, y: 0, text: '<b>FP</b><br>' + cm.fp,
+          showarrow: false, font: { size: 14, color: '#c0392b' },
+          xanchor: 'center', yanchor: 'middle' },
+        { x: 0, y: 1, text: '<b>FN</b><br>' + cm.fn,
+          showarrow: false, font: { size: 14, color: '#c0392b' },
+          xanchor: 'center', yanchor: 'middle' },
+        { x: 1, y: 1, text: '<b>TP</b><br>' + cm.tp,
+          showarrow: false, font: { size: 14, color: '#fff' },
+          xanchor: 'center', yanchor: 'middle' },
+      ],
+      margin: { l: 70, r: 15, t: 55, b: 55 },
+      height: 350,
+    }, PLOTLY_CONFIG);
   }
-
-  const xDomainLeft = [0.04, 0.47];
-  const xDomainRight = [0.56, 0.99];
-  const yDomainTop = [0.55, 0.95];
-  const yDomainBottom = [0.04, 0.44];
-
-  Plotly.newPlot('chart-confusion', subplots, {
-    ...LAYOUT_DEFAULTS,
-    title: { text: 'Confusion Matrices — 4 Model Comparison', x: 0.5, xanchor: 'center' },
-    // Top-left subplot (LR)
-    xaxis:  { tickvals: [0,1], ticktext: ['Pred 0','Pred 1'], domain: xDomainLeft,   anchor: 'y'  },
-    yaxis:  { tickvals: [0,1], ticktext: ['Actual 0','Actual 1'], domain: yDomainTop, autorange: 'reversed' },
-    // Top-right subplot (DT)
-    xaxis2: { tickvals: [0,1], ticktext: ['Pred 0','Pred 1'], domain: xDomainRight,  anchor: 'y2' },
-    yaxis2: { tickvals: [0,1], ticktext: ['Actual 0','Actual 1'], domain: yDomainTop, autorange: 'reversed' },
-    // Bottom-left subplot (RF)
-    xaxis3: { tickvals: [0,1], ticktext: ['Pred 0','Pred 1'], domain: xDomainLeft,   anchor: 'y3' },
-    yaxis3: { tickvals: [0,1], ticktext: ['Actual 0','Actual 1'], domain: yDomainBottom, autorange: 'reversed' },
-    // Bottom-right subplot (KNN)
-    xaxis4: { tickvals: [0,1], ticktext: ['Pred 0','Pred 1'], domain: xDomainRight,  anchor: 'y4' },
-    yaxis4: { tickvals: [0,1], ticktext: ['Actual 0','Actual 1'], domain: yDomainBottom, autorange: 'reversed' },
-    annotations: annotations,
-    showlegend: false,
-    height: 600, margin: { l: 50, r: 20, t: 70, b: 40 }
-  }, PLOTLY_CONFIG);
 })();
 
 // ====== STEP 7: METRICS TABLE & BAR (with dropdown) ======
