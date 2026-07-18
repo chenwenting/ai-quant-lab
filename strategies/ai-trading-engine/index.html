@@ -133,6 +133,10 @@ body {
   font-family:Consolas,monospace; font-size:11px; overflow-x:auto; margin-bottom:10px;
   white-space:pre; line-height:1.6;
 }
+.cm-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:8px;
+}
+@media (max-width:768px) { .cm-grid { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -199,7 +203,14 @@ body {
       <p id="feat-select-text"></p>
       <div class="chart-box" id="chart-correlation" style="min-height:520px;"></div>
       <div class="chart-box-sm" id="chart-ycorr-top10" style="min-height:400px;"></div>
-      <div class="chart-box" id="chart-feature-group-box" style="min-height:600px;"></div>
+      <div class="cm-grid" id="feature-box-grid">
+        <div class="chart-box-sm" id="chart-box-f-0"></div>
+        <div class="chart-box-sm" id="chart-box-f-1"></div>
+        <div class="chart-box-sm" id="chart-box-f-2"></div>
+        <div class="chart-box-sm" id="chart-box-f-3"></div>
+        <div class="chart-box-sm" id="chart-box-f-4"></div>
+        <div class="chart-box-sm" id="chart-box-f-5"></div>
+      </div>
     </div>
   </section>
 
@@ -403,70 +414,29 @@ Plotly.newPlot('chart-y-trend', [{
   }, PLOTLY_CONFIG);
 })();
 
-// ====== STEP 3: TOP 6 FEATURE GROUP BOX PLOT ======
+// ====== STEP 3: TOP 6 FEATURE GROUP BOX PLOT (6 independent charts) ======
 (function() {
   const fd = DATA.feature_group_data;
-  const n = fd.length;
-  const cols = 3;
-  const rows = Math.ceil(n / cols);
-
-  const subplots = [];
-  const gridRef = [];
-
-  for (let i = 0; i < n; i++) {
-    const xs = 'x' + (i > 0 ? i + 1 : '');
-    const ys = 'y' + (i > 0 ? i + 1 : '');
-    gridRef.push({ xaxis: xs, yaxis: ys });
-
-    subplots.push({
-      type: 'box', y: fd[i].Y0_values, name: '跌 (Y=0)',
-      marker: { color: '#27ae60' }, boxpoints: 'outliers',
-      jitter: 0.3, pointpos: -1.8,
-      xaxis: xs, yaxis: ys,
-      legendgroup: 'Y0', showlegend: (i === 0),
-    });
-    subplots.push({
-      type: 'box', y: fd[i].Y1_values, name: '涨 (Y=1)',
-      marker: { color: '#e74c3c' }, boxpoints: 'outliers',
-      jitter: 0.3, pointpos: -1.8,
-      xaxis: xs, yaxis: ys,
-      legendgroup: 'Y1', showlegend: (i === 0),
-    });
+  for (let i = 0; i < fd.length; i++) {
+    const f = fd[i];
+    const shortName = f.feature.replace(/\(.*$/, '');
+    Plotly.newPlot('chart-box-f-' + i, [
+      { type: 'box', y: f.Y0_values, name: '跌 (Y=0)',
+        marker: { color: '#27ae60' }, boxpoints: 'outliers',
+        jitter: 0.3, pointpos: -1.8, showlegend: (i === 0), legendgroup: 'Y0' },
+      { type: 'box', y: f.Y1_values, name: '涨 (Y=1)',
+        marker: { color: '#e74c3c' }, boxpoints: 'outliers',
+        jitter: 0.3, pointpos: -1.8, showlegend: (i === 0), legendgroup: 'Y1' },
+    ], {
+      ...LAYOUT_DEFAULTS,
+      title: { text: '<b>' + shortName + '</b>', x: 0.5, xanchor: 'center', font: { size: 12 } },
+      showlegend: (i === 0),
+      legend: { x: 0.05, y: 0.98, font: { size: 10 } },
+      xaxis: { showticklabels: false, zeroline: false, dtick: null },
+      margin: { l: 50, r: 15, t: 45, b: 35 },
+      height: 320,
+    }, PLOTLY_CONFIG);
   }
-
-  const layout = {
-    ...LAYOUT_DEFAULTS,
-    title: 'Top 6 关键特征按目标变量分组对比',
-    showlegend: true,
-    legend: { x: 0.85, y: 0.98, font: { size: 11 } },
-    height: 600,
-    margin: { l: 50, r: 20, t: 55, b: 40 },
-  };
-
-  for (let i = 0; i < n; i++) {
-    const gr = gridRef[i];
-    const r = Math.floor(i / cols);
-    const c = i % cols;
-    const x0 = c / cols + 0.04;
-    const x1 = (c + 1) / cols - 0.02;
-    const y0 = 1 - (r + 1) / rows + 0.06;
-    const y1 = 1 - r / rows - 0.04;
-
-    const xAxisKey = 'xaxis' + (i > 0 ? (i + 1) : '');
-    const yAxisKey = 'yaxis' + (i > 0 ? (i + 1) : '');
-    layout[xAxisKey] = {
-      domain: [x0, x1],
-      tickfont: { size: 8 },
-      zeroline: false,
-    };
-    layout[yAxisKey] = {
-      domain: [y0, y1],
-      title: { text: fd[i].feature.replace(/\(.*$/, '').slice(0, 10), font: { size: 9 } },
-      tickfont: { size: 8 },
-    };
-  }
-
-  Plotly.newPlot('chart-feature-group-box', subplots, layout, PLOTLY_CONFIG);
 })();
 
 // ====== STEP 4: TRAIN/TEST SPLIT ======
