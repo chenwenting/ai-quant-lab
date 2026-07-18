@@ -3,377 +3,636 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ML Top30 选股 | AI Quant Lab</title>
+<title>ML定制专属策略实战 | AI Quant Lab</title>
 <script src="https://cdn.plot.ly/plotly-2.35.0.min.js"></script>
 <style>
 :root {
-  --primary: #4361ee;
-  --primary-light: #eef0ff;
-  --dark: #1a1a2e;
-  --text: #2c3e50;
-  --text-light: #6c7a89;
-  --card: #fff;
-  --light: #f5f6fa;
-  --border: #e8ecf1;
-  --red: #e74c3c;
-  --green: #27ae60;
-  --blue: #3498db;
-  --orange: #e67e22;
-  --purple: #8e44ad;
+  --primary: #4361ee; --primary-dark: #3a0ca3; --dark: #1a1a2e;
+  --text: #2c3e50; --sub: #6c7a89; --card: #fff; --light: #f5f6fa;
+  --border: #e8ecf1; --red: #e74c3c; --green: #27ae60; --blue: #3498db;
+  --orange: #e67e22; --purple: #8e44ad;
   --shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif; background: var(--light); color: var(--text); line-height: 1.6; }
-a { text-decoration: none; color: var(--primary); }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, 'Microsoft YaHei', sans-serif; background: var(--light); color: var(--text); }
+a { text-decoration:none; color:var(--primary); }
 
 /* Nav */
-nav { background: linear-gradient(135deg, var(--dark) 0%, #16213e 100%); padding: 0 24px; height: 56px; display: flex; align-items: center; position: sticky; top: 0; z-index: 100; }
-nav .nav-inner { max-width: 1060px; margin: 0 auto; width: 100%; display: flex; align-items: center; gap: 24px; }
-nav a { color: rgba(255,255,255,0.85); font-size: 14px; transition: color 0.2s; }
-nav a:hover { color: #fff; }
-nav .brand { font-weight: 700; font-size: 16px; color: #fff; }
-nav .sep { color: rgba(255,255,255,0.3); }
+nav { background: linear-gradient(135deg, var(--dark), #16213e); padding: 0 24px; height: 56px; display: flex; align-items: center; position: sticky; top:0; z-index:100; }
+nav .nav-in { max-width: 1200px; margin: 0 auto; width: 100%; display: flex; align-items: center; gap: 20px; }
+nav a { color: rgba(255,255,255,0.85); font-size:14px; }
+nav a:hover { color:#fff; }
+nav .brand { font-weight:700; font-size:16px; color:#fff; }
 
 /* Hero */
-.hero { background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%); color: #fff; padding: 48px 24px; text-align: center; }
-.hero h1 { font-size: 32px; margin-bottom: 8px; }
-.hero p { font-size: 16px; opacity: 0.9; max-width: 700px; margin: 0 auto 20px; }
-.hero .tags { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
-.tag { padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-.tag-green { background: rgba(39,174,96,0.2); color: #2ecc71; }
-.tag-purple { background: rgba(142,68,173,0.2); color: #c39bdb; }
-.tag-blue { background: rgba(52,152,219,0.2); color: #85c1e9; }
-.tag-amber { background: rgba(230,126,34,0.2); color: #f0b27a; }
+.hero { background: linear-gradient(135deg, #4361ee, #3a0ca3); color:#fff; padding: 40px 24px 32px; text-align:center; }
+.hero h1 { font-size: 28px; margin-bottom: 6px; }
+.hero .sub { font-size: 14px; opacity: 0.85; }
 
 /* Container */
-.container { max-width: 1060px; margin: 0 auto; padding: 32px 24px; }
+.container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+/* Control Panel */
+.panel { background: var(--card); border-radius: 12px; box-shadow: var(--shadow); padding: 24px; margin-bottom: 24px; }
+.panel h3 { font-size: 16px; color: var(--dark); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+.chip { padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: 2px solid var(--border); background: #fff; color: var(--text); transition: all 0.2s; user-select: none; }
+.chip:hover { border-color: var(--primary); }
+.chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.chip.model-lr.active { background: #3498db; border-color: #3498db; }
+.chip.model-logreg.active { background: #8e44ad; border-color: #8e44ad; }
+.chip.model-dt.active { background: #e74c3c; border-color: #e74c3c; }
+.chip.model-rf.active { background: #e67e22; border-color: #e67e22; }
+.chip.weight-equal.active { background: #3498db; border-color: #3498db; }
+.chip.weight-pred.active { background: #e74c3c; border-color: #e74c3c; }
+.actions { margin-top: 16px; display: flex; gap: 12px; }
+.btn { padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-outline { background: #fff; color: var(--primary); border: 2px solid var(--primary); }
+.btn-outline:hover { background: var(--primary); color: #fff; }
+
+/* Stats grid */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat { background: var(--card); border-radius: 10px; padding: 20px; text-align: center; box-shadow: var(--shadow); }
+.stat .v { font-size: 28px; font-weight: 700; color: var(--primary); }
+.stat .l { font-size: 12px; color: var(--sub); margin-top: 4px; }
 
 /* Cards */
-.card { background: var(--card); border-radius: 12px; box-shadow: var(--shadow); padding: 28px; margin-bottom: 24px; }
-.card h2 { font-size: 20px; margin-bottom: 16px; color: var(--dark); display: flex; align-items: center; gap: 10px; }
-.card h2 .step-num { background: var(--primary); color: #fff; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; }
+.card { background: var(--card); border-radius: 12px; box-shadow: var(--shadow); padding: 24px; margin-bottom: 24px; }
+.card h2 { font-size: 18px; margin-bottom: 16px; color: var(--dark); display: flex; align-items: center; gap: 8px; }
+.card h2 .num { background: var(--primary); color:#fff; width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:13px; }
+
+/* Model cards */
+.model-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.mcard { padding: 20px; border-radius: 10px; border: 1px solid var(--border); background: #fff; transition: all 0.2s; }
+.mcard.selected { border-width: 2px; }
+.mcard h4 { font-size: 15px; margin-bottom: 4px; }
+.mcard .en { font-size: 12px; color: var(--sub); margin-bottom: 12px; }
+.mcard .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mcard .metric { text-align: center; padding: 8px; background: var(--light); border-radius: 6px; }
+.mcard .metric .val { font-size: 18px; font-weight: 700; }
+.mcard .metric .lbl { font-size: 10px; color: var(--sub); }
+.hidden { display: none !important; }
 
 /* Tables */
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
-th { background: var(--primary-light); color: var(--dark); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+th { background: #eef0ff; color: var(--dark); font-weight: 600; font-size: 12px; }
 tr:hover { background: #fafbfc; }
-.positive { color: var(--red); font-weight: 600; }
-.negative { color: var(--green); font-weight: 600; }
+.pos { color: var(--red); font-weight: 600; }
+.neg { color: var(--green); font-weight: 600; }
 
 /* Charts */
-.chart { width: 100%; min-height: 400px; }
+.chart { width: 100%; min-height: 380px; }
 
-/* Grid */
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-@media (max-width: 768px) { .grid-2, .grid-4 { grid-template-columns: 1fr; } }
+/* Tabs */
+.tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.tab { padding: 8px 18px; border-radius: 6px; font-size: 13px; cursor: pointer; border: 1px solid var(--border); background: #fff; transition: all 0.2s; }
+.tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 
-/* Stat card */
-.stat-card { background: var(--card); border-radius: 10px; padding: 20px; text-align: center; box-shadow: var(--shadow); }
-.stat-card .value { font-size: 28px; font-weight: 700; color: var(--primary); }
-.stat-card .label { font-size: 12px; color: var(--text-light); margin-top: 4px; text-transform: uppercase; }
-
-/* Nav steps */
-.nav-steps { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
-.nav-steps a { padding: 6px 16px; border-radius: 20px; font-size: 13px; background: var(--card); color: var(--text-light); border: 1px solid var(--border); transition: all 0.2s; }
-.nav-steps a:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+/* Comparison */
+.compare-row { display: flex; gap: 16px; flex-wrap: wrap; }
+.compare-col { flex: 1; min-width: 300px; }
 
 /* Footer */
-footer { text-align: center; padding: 32px; color: var(--text-light); font-size: 13px; border-top: 1px solid var(--border); margin-top: 40px; }
+footer { text-align: center; padding: 24px; color: var(--sub); font-size: 12px; border-top: 1px solid var(--border); }
 
-/* Model card */
-.model-card { padding: 16px; border-radius: 8px; border: 1px solid var(--border); }
-.model-card h4 { font-size: 15px; margin-bottom: 8px; }
-.model-card .metric { font-size: 22px; font-weight: 700; }
+/* Tooltip */
+.tooltip { position: relative; }
+.tooltip::after { content: attr(data-tip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: var(--dark); color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 11px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.chip:hover.tooltip::after { opacity: 1; }
+
+/* Loading */
+.loading { display: flex; align-items: center; justify-content: center; padding: 40px; }
+.spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Strategy config */
+.config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.config-item { padding: 12px; background: var(--light); border-radius: 8px; }
+.config-item .key { font-size: 12px; color: var(--sub); margin-bottom: 4px; }
+.config-item .value { font-size: 18px; font-weight: 700; color: var(--dark); }
+
+/* Status badge */
+.badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+.badge-best { background: #d5f5e3; color: #27ae60; }
+.badge-warn { background: #fef9e7; color: #f39c12; }
+.badge-info { background: #eaf2f8; color: #2980b9; }
 </style>
 </head>
 <body>
 
 <nav>
-  <div class="nav-inner">
+  <div class="nav-in">
     <a href="../../index.html" class="brand">AI Quant Lab</a>
-    <span class="sep">|</span>
-    <a href="#">ML Top30 选股</a>
+    <span style="color:rgba(255,255,255,0.3)">|</span>
+    <a href="#">ML定制专属策略实战</a>
   </div>
 </nav>
 
 <div class="hero">
-  <h1>ML Top30 选股策略</h1>
-  <p>基于 4,281 只 A 股 19 个财务因子，训练线性回归 / 逻辑回归 / 决策树 / 随机森林模型，构建季度 Top 30 轮动策略，对比等权与预测值加权效果。</p>
-  <div class="tags">
-    <span class="tag tag-green">机器学习</span>
-    <span class="tag tag-purple">量化选股</span>
-    <span class="tag tag-blue">因子模型</span>
-    <span class="tag tag-amber">Top 30</span>
-  </div>
+  <h1>ML定制专属策略实战</h1>
+  <p class="sub">选择模型 → 配置策略 → 回测评估 → 对比分析</p>
 </div>
 
 <div class="container">
 
-  <div class="nav-steps">
-    <a href="#data">数据概览</a>
-    <a href="#preprocess">预处理</a>
-    <a href="#models">模型训练</a>
-    <a href="#predict">预测评估</a>
-    <a href="#strategy">策略分析</a>
-    <a href="#importance">特征重要性</a>
-    <a href="#summary">总结</a>
-  </div>
-
-  <!-- Step 1: Data Overview -->
-  <div class="card" id="data">
-    <h2><span class="step-num">1</span> 数据概览</h2>
-    <div class="grid-4" id="data-stats"></div>
-    <div id="next-ret-chart" class="chart" style="min-height:400px"></div>
-  </div>
-
-  <!-- Step 2: Preprocess -->
-  <div class="card" id="preprocess">
-    <h2><span class="step-num">2</span> 因子预处理</h2>
-    <p style="color:var(--text-light);margin-bottom:16px">Winsorize(1%, 99%) → 特征筛选(移除冗余) → StandardScaler(仅fit on train)</p>
-  </div>
-
-  <!-- Step 3: Model Training -->
-  <div class="card" id="models">
-    <h2><span class="step-num">3</span> 模型训练与 CV</h2>
-    <div class="grid-4" id="model-cards"></div>
-  </div>
-
-  <!-- Step 4: Prediction -->
-  <div class="card" id="predict">
-    <h2><span class="step-num">4</span> 预测评估 — IC / Rank IC 对比</h2>
-    <div class="grid-2">
-      <div id="ic-chart" class="chart"></div>
-      <div id="ric-chart" class="chart"></div>
+  <!-- Control Panel -->
+  <div class="panel" id="control-panel">
+    <h3>🧪 策略配置面板</h3>
+    <p style="font-size:13px;color:var(--sub);margin-bottom:12px">选择机器学习模型，配置投资策略参数，一键查看回测结果</p>
+    
+    <p style="font-weight:600;font-size:13px;margin-bottom:8px">选择模型：</p>
+    <div class="row" id="model-chips">
+      <div class="chip model-lr active" data-model="线性回归">📈 线性回归 (Baseline)</div>
+      <div class="chip model-logreg active" data-model="逻辑回归">📊 逻辑回归 (概率)</div>
+      <div class="chip model-dt active" data-model="决策树">🌳 决策树</div>
+      <div class="chip model-rf active" data-model="随机森林">🌲 随机森林</div>
+    </div>
+    
+    <p style="font-weight:600;font-size:13px;margin:16px 0 8px">选择权重方式：</p>
+    <div class="row" id="weight-chips">
+      <div class="chip weight-equal active" data-weight="等权">⚖ 等权配置 (1/30)</div>
+      <div class="chip weight-pred active" data-weight="预测值加权">🎯 预测值加权</div>
+    </div>
+    
+    <div class="actions">
+      <button class="btn btn-primary" onclick="runBacktest()">▶ 运行回测分析</button>
+      <button class="btn btn-outline" onclick="resetAll()">↺ 重置选择</button>
     </div>
   </div>
 
-  <!-- Step 5: Strategy -->
-  <div class="card" id="strategy">
-    <h2><span class="step-num">5</span> 策略绩效 — 累计净值曲线</h2>
-    <div id="nav-chart" class="chart" style="min-height:450px"></div>
+  <!-- Loading -->
+  <div id="loading-area" class="loading hidden"><div class="spinner"></div></div>
+
+  <!-- Data Overview -->
+  <div class="stats" id="data-stats"></div>
+
+  <!-- Strategy Config -->
+  <div class="card" id="strategy-config-card">
+    <h2><span class="num">0</span> 策略参数配置</h2>
+    <div class="config-grid" id="strategy-config"></div>
   </div>
 
-  <div class="card">
-    <h2><span class="step-num">6</span> 绩效指标对比</h2>
+  <!-- Model Performance Cards -->
+  <div class="card" id="model-cards-card">
+    <h2><span class="num">1</span> 模型训练结果</h2>
+    <div class="model-grid" id="model-cards"></div>
+  </div>
+
+  <!-- Backtest Results -->
+  <div class="card" id="backtest-card">
+    <h2><span class="num">2</span> 回测结果 — 累计净值曲线</h2>
+    <div id="nav-chart" class="chart"></div>
+  </div>
+
+  <!-- Performance Metrics -->
+  <div class="card" id="perf-card">
+    <h2><span class="num">3</span> 绩效指标对比</h2>
     <div id="perf-table"></div>
+    <div id="perf-chart" class="chart" style="min-height: 300px;"></div>
   </div>
 
-  <!-- Step 6: Feature Importance -->
-  <div class="card" id="importance">
-    <h2><span class="step-num">7</span> 特征重要性 Top 15</h2>
-    <div id="fi-chart" class="chart" style="min-height:450px"></div>
+  <!-- Quarterly Returns -->
+  <div class="card" id="quarterly-card">
+    <h2><span class="num">4</span> 季度收益率明细</h2>
+    <div id="quarterly-chart" class="chart"></div>
   </div>
 
-  <!-- Summary -->
-  <div class="card" id="summary">
-    <h2><span class="step-num">8</span> 总结</h2>
-    <div id="summary-content"></div>
+  <!-- Feature Importance -->
+  <div class="card" id="fi-card">
+    <h2><span class="num">5</span> 特征重要性分析</h2>
+    <div id="fi-chart" class="chart"></div>
+  </div>
+
+  <!-- Model Comparison -->
+  <div class="card" id="compare-card">
+    <h2><span class="num">6</span> 模型综合对比</h2>
+    <div id="compare-content"></div>
   </div>
 
 </div>
 
 <footer>
-  <p>AI Quant Lab &copy; 2026 | 仅供研究参考，不构成投资建议</p>
-  <p style="margin-top:4px">数据区间: 2020Q1 - 2022Q2 | 训练6季 + 测试4季 | 严格时序切分，防前视偏差</p>
+  <p>数据: A股 4,281只 × 10季度 × 19因子 | 训练2020Q1-2021Q2 | 测试2021Q3-2022Q2 | 严格时序切分</p>
+  <p>仅供研究参考，不构成投资建议</p>
 </footer>
 
-<script id="ml-data" type="application/json">
-</script>
-
 <script>
-// Data will be embedded here from dashboard_data.json
-const DATA = {};
-
-function loadData() {
-  const script = document.getElementById('ml-data');
-  if (script && script.textContent.trim()) {
-    try {
-      Object.assign(DATA, JSON.parse(script.textContent));
-      renderAll();
-    } catch(e) { console.error('Data parse error:', e); }
+// ===== EMBEDDED DATA =====
+const DATA = {
+  "meta": {"n_stocks":4281,"n_features":18,"train_quarters":["2020Q1","2020Q2","2020Q3","2020Q4","2021Q1","2021Q2"],"test_quarters":["2021Q3","2021Q4","2022Q1","2022Q2"]},
+  "test_ic":{"线性回归":0.1437,"逻辑回归":0.1108,"决策树":0.0818,"随机森林":0.1319},
+  "test_rank_ic":{"线性回归":0.1980,"逻辑回归":0.1590,"决策树":0.0970,"随机森林":0.1466},
+  "performance":[
+    {"Model":"线性回归","Weight_Method":"等权","累计收益":0.3360,"年化收益率":0.3360,"年化波动率":0.2167,"夏普比率":1.44,"最大回撤":-0.0548,"胜率":0.75},
+    {"Model":"线性回归","Weight_Method":"预测值加权","累计收益":0.3455,"年化收益率":0.3455,"年化波动率":0.2131,"夏普比率":1.50,"最大回撤":-0.0500,"胜率":0.75},
+    {"Model":"逻辑回归","Weight_Method":"等权","累计收益":0.2777,"年化收益率":0.2777,"年化波动率":0.1556,"夏普比率":1.62,"最大回撤":-0.0182,"胜率":0.75},
+    {"Model":"逻辑回归","Weight_Method":"预测值加权","累计收益":0.2796,"年化收益率":0.2796,"年化波动率":0.1573,"夏普比率":1.62,"最大回撤":-0.0181,"胜率":0.75},
+    {"Model":"决策树","Weight_Method":"等权","累计收益":0.1696,"年化收益率":0.1696,"年化波动率":0.1611,"夏普比率":0.90,"最大回撤":-0.0242,"胜率":0.50},
+    {"Model":"决策树","Weight_Method":"预测值加权","累计收益":0.2106,"年化收益率":0.2106,"年化波动率":0.2052,"夏普比率":0.90,"最大回撤":-0.0290,"胜率":0.50},
+    {"Model":"随机森林","Weight_Method":"等权","累计收益":0.5040,"年化收益率":0.5040,"年化波动率":0.1325,"夏普比率":3.61,"最大回撤":0.0,"胜率":1.0},
+    {"Model":"随机森林","Weight_Method":"预测值加权","累计收益":0.5428,"年化收益率":0.5428,"年化波动率":0.1600,"夏普比率":3.24,"最大回撤":0.0,"胜率":1.0},
+    {"Model":"基准(全市场等权)","Weight_Method":"---","累计收益":0.0677,"年化收益率":0.0677,"年化波动率":0.1713,"夏普比率":0.25,"最大回撤":-0.0920,"胜率":0.75}
+  ],
+  "strategy_nav":{
+    "quarters":["2021Q3","2021Q4","2022Q1","2022Q2"],
+    "线性回归_等权":[1.1235,1.1787,1.4135,1.3360],
+    "线性回归_预测值加权":[1.1224,1.1796,1.4162,1.3455],
+    "逻辑回归_等权":[1.0858,1.1189,1.3014,1.2777],
+    "逻辑回归_预测值加权":[1.0852,1.1183,1.3032,1.2796],
+    "决策树_等权":[0.9849,1.1321,1.1986,1.1696],
+    "决策树_预测值加权":[0.9902,1.1858,1.2468,1.2106],
+    "随机森林_等权":[1.1682,1.3394,1.4768,1.5040],
+    "随机森林_预测值加权":[1.1622,1.3865,1.5251,1.5428],
+    "benchmark":[1.0447,1.1634,1.1759,1.0677]
+  },
+  "feature_importance":[
+    {"Feature":"利润总额(同比增长率)","LR_Importance":0.0122,"DT_Importance":0.1593,"RF_Importance":0.0519,"Avg_Rank":3.67},
+    {"Feature":"营业总收入(同比增长率)","LR_Importance":0.0094,"DT_Importance":0.0683,"RF_Importance":0.0807,"Avg_Rank":3.67},
+    {"Feature":"企业倍数(EV除EBITDA)","LR_Importance":0.0066,"DT_Importance":0.0705,"RF_Importance":0.0708,"Avg_Rank":4.33},
+    {"Feature":"市净率PB(MRQ)","LR_Importance":0.0034,"DT_Importance":0.0816,"RF_Importance":0.0851,"Avg_Rank":5.33},
+    {"Feature":"营业利润(同比增长率)","LR_Importance":0.0062,"DT_Importance":0.0530,"RF_Importance":0.0808,"Avg_Rank":5.33},
+    {"Feature":"MV","LR_Importance":0.0022,"DT_Importance":0.1004,"RF_Importance":0.1004,"Avg_Rank":5.67},
+    {"Feature":"净利润同比增长率","LR_Importance":0.0067,"DT_Importance":0.0551,"RF_Importance":0.0523,"Avg_Rank":6.0},
+    {"Feature":"现金净流量同比增长率","LR_Importance":0.0058,"DT_Importance":0.0405,"RF_Importance":0.0533,"Avg_Rank":8.67},
+    {"Feature":"净资产同比增长率","LR_Importance":0.0059,"DT_Importance":0.0439,"RF_Importance":0.0497,"Avg_Rank":9.0},
+    {"Feature":"经营活动产生的现金流量净额(同比增长率)","LR_Importance":0.0014,"DT_Importance":0.0600,"RF_Importance":0.0519,"Avg_Rank":10.67},
+    {"Feature":"股息率(近12个月)","LR_Importance":0.0042,"DT_Importance":0.0462,"RF_Importance":0.0372,"Avg_Rank":11.33},
+    {"Feature":"总资产同比增长率","LR_Importance":0.0051,"DT_Importance":0.0314,"RF_Importance":0.0439,"Avg_Rank":11.67},
+    {"Feature":"基本每股收益(同比增长率)","LR_Importance":0.0030,"DT_Importance":0.0245,"RF_Importance":0.0599,"Avg_Rank":11.67},
+    {"Feature":"市销率PS(TTM)","LR_Importance":0.0045,"DT_Importance":0.0297,"RF_Importance":0.0394,"Avg_Rank":12.67},
+    {"Feature":"市盈率PE(TTM)","LR_Importance":0.0013,"DT_Importance":0.0366,"RF_Importance":0.0394,"Avg_Rank":14.67}
+  ],
+  "quarterly_returns":{
+    "quarters":["2021Q3","2021Q4","2022Q1","2022Q2"],
+    "线性回归_等权":[0.1235,0.0492,0.1991,-0.0548],
+    "线性回归_预测值加权":[0.1224,0.0510,0.2006,-0.0500],
+    "逻辑回归_等权":[0.0858,0.0305,0.1631,-0.0182],
+    "逻辑回归_预测值加权":[0.0852,0.0305,0.1653,-0.0181],
+    "决策树_等权":[-0.0151,0.1495,0.0588,-0.0242],
+    "决策树_预测值加权":[-0.0098,0.1975,0.0514,-0.0290],
+    "随机森林_等权":[0.1682,0.1465,0.1025,0.0183],
+    "随机森林_预测值加权":[0.1622,0.1930,0.1000,0.0116],
+    "benchmark":[0.0447,0.1136,0.0107,-0.0920]
   }
+};
+
+const MODEL_COLORS = { '线性回归': '#3498db', '逻辑回归': '#8e44ad', '决策树': '#e74c3c', '随机森林': '#e67e22' };
+const MODEL_INFO = {
+  '线性回归': { en: 'Linear Regression', params: 'OLS, 无需调参', type: '回归', cv: 'R²=0.022' },
+  '逻辑回归': { en: 'Logistic Regression', params: 'C=1.0, max_iter=2000', type: '概率模式', cv: 'AUC=0.514' },
+  '决策树': { en: 'Decision Tree', params: 'max_depth=8, min_split=50', type: '回归树', cv: 'R²=0.008' },
+  '随机森林': { en: 'Random Forest', params: 'n=200, max_depth=10', type: '集成回归', cv: 'R²=0.008' }
+};
+
+// ===== STATE =====
+let selectedModels = ['线性回归','逻辑回归','决策树','随机森林'];
+let selectedWeights = ['等权','预测值加权'];
+
+// ===== CHIP HANDLERS =====
+document.querySelectorAll('#model-chips .chip').forEach(chip => {
+  chip.addEventListener('click', function() {
+    this.classList.toggle('active');
+    updateModelSelection();
+  });
+});
+
+document.querySelectorAll('#weight-chips .chip').forEach(chip => {
+  chip.addEventListener('click', function() {
+    this.classList.toggle('active');
+    updateWeightSelection();
+  });
+});
+
+function updateModelSelection() {
+  selectedModels = [];
+  document.querySelectorAll('#model-chips .chip.active').forEach(c => {
+    selectedModels.push(c.dataset.model);
+  });
 }
 
+function updateWeightSelection() {
+  selectedWeights = [];
+  document.querySelectorAll('#weight-chips .chip.active').forEach(c => {
+    selectedWeights.push(c.dataset.weight);
+  });
+}
+
+function resetAll() {
+  document.querySelectorAll('#model-chips .chip').forEach(c => c.classList.add('active'));
+  document.querySelectorAll('#weight-chips .chip').forEach(c => c.classList.add('active'));
+  updateModelSelection();
+  updateWeightSelection();
+  runBacktest();
+}
+
+// ===== BACKTEST SIMULATION =====
+function runBacktest() {
+  if (selectedModels.length === 0 || selectedWeights.length === 0) {
+    alert('请至少选择一个模型和一个权重方式');
+    return;
+  }
+  
+  showLoading();
+  setTimeout(() => {
+    renderAll();
+    hideLoading();
+    document.getElementById('backtest-card').scrollIntoView({ behavior: 'smooth' });
+  }, 600);
+}
+
+function showLoading() {
+  document.getElementById('loading-area').classList.remove('hidden');
+}
+function hideLoading() {
+  document.getElementById('loading-area').classList.add('hidden');
+}
+
+// ===== RENDER ALL =====
 function renderAll() {
-  if (!DATA.meta) return;
-  
-  renderDataStats();
+  renderStats();
+  renderStrategyConfig();
   renderModelCards();
-  renderICCharts();
-  renderNAVChart();
+  renderNAV();
   renderPerfTable();
-  renderFIChart();
-  renderSummary();
+  renderPerfChart();
+  renderQuarterly();
+  renderFI();
+  renderCompare();
 }
 
-function renderDataStats() {
+// ===== DATA STATS =====
+function renderStats() {
   const m = DATA.meta;
-  const stats = [
-    { v: m.n_stocks.toLocaleString(), l: '股票数量' },
-    { v: m.n_features, l: '特征因子' },
-    { v: m.train_quarters ? m.train_quarters.length : '6', l: '训练季度' },
-    { v: m.test_quarters ? m.test_quarters.length : '4', l: '测试季度' }
-  ];
-  document.getElementById('data-stats').innerHTML = stats.map(s =>
-    `<div class="stat-card"><div class="value">${s.v}</div><div class="label">${s.l}</div></div>`
-  ).join('');
+  document.getElementById('data-stats').innerHTML = `
+    <div class="stat"><div class="v">${m.n_stocks.toLocaleString()}</div><div class="l">A股数量</div></div>
+    <div class="stat"><div class="v">${m.n_features}</div><div class="l">特征因子</div></div>
+    <div class="stat"><div class="v">6</div><div class="l">训练季度</div></div>
+    <div class="stat"><div class="v">4</div><div class="l">测试季度</div></div>
+    <div class="stat"><div class="v">Top 30</div><div class="l">持仓数量</div></div>
+    <div class="stat"><div class="v">4</div><div class="l">ML模型</div></div>
+  `;
 }
 
+// ===== STRATEGY CONFIG =====
+function renderStrategyConfig() {
+  document.getElementById('strategy-config').innerHTML = `
+    <div class="config-item">
+      <div class="key">选股数量 (Top N)</div>
+      <div class="value">Top 30</div>
+    </div>
+    <div class="config-item">
+      <div class="key">权重方式</div>
+      <div class="value">${selectedWeights.join(' + ')}</div>
+    </div>
+    <div class="config-item">
+      <div class="key">已选模型</div>
+      <div class="value">${selectedModels.length}个</div>
+    </div>
+    <div class="config-item">
+      <div class="key">再平衡频率</div>
+      <div class="value">季度换仓</div>
+    </div>
+    <div class="config-item">
+      <div class="key">训练/测试划分</div>
+      <div class="value">6季 / 4季</div>
+    </div>
+    <div class="config-item">
+      <div class="key">预处理</div>
+      <div class="value">Winsorize + Scaler</div>
+    </div>
+  `;
+}
+
+// ===== MODEL CARDS =====
 function renderModelCards() {
-  const ic = DATA.test_ic || {};
-  const ric = DATA.test_rank_ic || {};
-  const models = Object.keys(ic);
-  
-  const colors = ['#3498db','#8e44ad','#e74c3c','#e67e22'];
-  const names = { '线性回归': 'Linear Regression','逻辑回归': 'Logistic Regression','决策树': 'Decision Tree','随机森林': 'Random Forest' };
-  
-  document.getElementById('model-cards').innerHTML = models.map((m, i) => {
-    const en = names[m] || m;
-    return `<div class="model-card" style="border-left: 3px solid ${colors[i]}">
-      <h4>${m}</h4>
-      <div style="font-size:12px;color:var(--text-light);margin-bottom:8px">${en}</div>
-      <div class="metric" style="color:${colors[i]}">IC: ${(ic[m]||0).toFixed(4)}</div>
-      <div style="font-size:13px;color:var(--text-light)">Rank IC: ${(ric[m]||0).toFixed(4)}</div>
+  const models = ['线性回归','逻辑回归','决策树','随机森林'];
+  const info = models.map(m => {
+    const ic = DATA.test_ic[m];
+    const ric = DATA.test_rank_ic[m];
+    const mi = MODEL_INFO[m];
+    const selected = selectedModels.includes(m);
+    const color = MODEL_COLORS[m];
+    return `<div class="mcard ${selected ? 'selected' : ''}" style="border-color:${selected ? color : 'var(--border)'};opacity:${selected ? 1 : 0.5}">
+      <h4 style="color:${color}">${m}</h4>
+      <div class="en">${mi.en} | ${mi.type}</div>
+      <div style="font-size:11px;color:var(--sub);margin-bottom:8px">超参数: ${mi.params} | CV: ${mi.cv}</div>
+      <div class="metrics">
+        <div class="metric"><div class="val" style="color:${color}">${ic.toFixed(4)}</div><div class="lbl">测试IC</div></div>
+        <div class="metric"><div class="val" style="color:${color}">${ric.toFixed(4)}</div><div class="lbl">Rank IC</div></div>
+      </div>
+      <div style="margin-top:8px;text-align:center">
+        <span class="badge badge-${selected ? 'best' : 'warn'}">${selected ? '已选中' : '未选中'}</span>
+      </div>
     </div>`;
   }).join('');
+  document.getElementById('model-cards').innerHTML = info;
 }
 
-function renderICCharts() {
-  const ic = DATA.test_ic || {};
-  const ric = DATA.test_rank_ic || {};
-  const models = Object.keys(ic);
-  const icVals = models.map(m => ic[m]);
-  const ricVals = models.map(m => ric[m]);
-  const icColors = icVals.map(v => v > 0 ? '#e74c3c' : '#27ae60');
-  const ricColors = ricVals.map(v => v > 0 ? '#e74c3c' : '#27ae60');
-
-  Plotly.newPlot('ic-chart', [{
-    x: models, y: icVals, type: 'bar', marker: { color: icColors },
-    text: icVals.map(v => v.toFixed(4)), textposition: 'outside'
-  }], {
-    title: 'IC (Pearson) 对比', margin: { t: 40 }, yaxis: { zeroline: true }
-  }, { responsive: true });
-
-  Plotly.newPlot('ric-chart', [{
-    x: models, y: ricVals, type: 'bar', marker: { color: ricColors },
-    text: ricVals.map(v => v.toFixed(4)), textposition: 'outside'
-  }], {
-    title: 'Rank IC (Spearman) 对比', margin: { t: 40 }, yaxis: { zeroline: true }
-  }, { responsive: true });
-}
-
-function renderNAVChart() {
-  const nav = DATA.strategy_nav || {};
-  const quarters = nav.quarters || [];
-  if (!quarters.length) return;
-  
-  const colors = ['#3498db','#8e44ad','#e74c3c','#e67e22'];
-  const models = Object.keys(DATA.test_ic || {});
+// ===== NAV CHART =====
+function renderNAV() {
+  const nav = DATA.strategy_nav;
+  const quarters = nav.quarters;
   const traces = [];
   
   // Benchmark
-  if (nav.benchmark) {
-    traces.push({
-      x: quarters, y: nav.benchmark, type: 'scatter', mode: 'lines+markers',
-      name: '基准(全市场等权)', line: { color: '#27ae60', dash: 'dashdot', width: 2.5 },
-      marker: { symbol: 'diamond', size: 8 }
-    });
-  }
+  traces.push({
+    x: quarters, y: nav.benchmark, type: 'scatter', mode: 'lines+markers',
+    name: '基准(全市场等权)', line: { color: '#95a5a6', dash: 'dashdot', width: 2.5 },
+    marker: { symbol: 'diamond', size: 10 }
+  });
   
-  models.forEach((m, i) => {
-    ['等权', '预测值加权'].forEach((w, j) => {
+  // Selected models
+  selectedModels.forEach(m => {
+    const color = MODEL_COLORS[m];
+    selectedWeights.forEach(w => {
       const key = `${m}_${w}`;
       if (nav[key]) {
         traces.push({
           x: quarters, y: nav[key], type: 'scatter', mode: 'lines+markers',
-          name: `${m} ${w}`, line: { color: colors[i], dash: j === 0 ? 'solid' : 'dash', width: 2 },
-          marker: { symbol: j === 0 ? 'circle' : 'square', size: 7 }
+          name: `${m} ${w}`, line: { color: color, dash: w === '等权' ? 'solid' : 'dash', width: 2.5 },
+          marker: { symbol: w === '等权' ? 'circle' : 'square', size: 8 }
         });
       }
     });
   });
   
   Plotly.newPlot('nav-chart', traces, {
-    title: '累计净值曲线', xaxis: { title: '季度' }, yaxis: { title: '净值' },
-    legend: { font: { size: 10 } }, margin: { t: 40 }
+    title: { text: '累计净值曲线', font: { size: 16 } },
+    xaxis: { title: '季度', dtick: 1 },
+    yaxis: { title: '累计净值', zeroline: true },
+    legend: { font: { size: 10 }, orientation: 'h', y: -0.2 },
+    margin: { t: 40, b: 80 },
   }, { responsive: true });
 }
 
+// ===== PERF TABLE =====
 function renderPerfTable() {
-  const perf = DATA.performance || [];
-  if (!perf.length) return;
+  const perf = DATA.performance;
+  const filtered = perf.filter(p => {
+    if (p.Model.includes('基准')) return true;
+    return selectedModels.includes(p.Model) && selectedWeights.includes(p.Weight_Method);
+  });
   
-  const rows = perf.map(p => `
-    <tr>
-      <td>${p.Model || ''}</td>
-      <td>${p.Weight_Method || ''}</td>
-      <td class="${(p['年化收益率']||0) > 0 ? 'positive' : 'negative'}">${((p['年化收益率']||0)*100).toFixed(2)}%</td>
-      <td>${((p['年化波动率']||0)*100).toFixed(2)}%</td>
-      <td>${(p['夏普比率']||0).toFixed(2)}</td>
-      <td class="negative">${((p['最大回撤']||0)*100).toFixed(2)}%</td>
-      <td>${((p['胜率']||0)*100).toFixed(1)}%</td>
-    </tr>
-  `).join('');
+  const rows = filtered.map(p => {
+    const annual = ((p.年化收益率 || 0) * 100).toFixed(2);
+    const cls = parseFloat(annual) > 0 ? 'pos' : 'neg';
+    const isBest = p.夏普比率 >= 3.0;
+    return `<tr>
+      <td>${p.Model} ${isBest && p.Model !== '基准(全市场等权)' ? '<span class="badge badge-best">最优</span>' : ''}</td>
+      <td>${p.Weight_Method}</td>
+      <td class="${cls}">${annual}%</td>
+      <td>${((p.年化波动率||0)*100).toFixed(2)}%</td>
+      <td>${(p.夏普比率||0).toFixed(2)}</td>
+      <td class="neg">${((p.最大回撤||0)*100).toFixed(2)}%</td>
+      <td>${((p.胜率||0)*100).toFixed(0)}%</td>
+    </tr>`;
+  }).join('');
   
   document.getElementById('perf-table').innerHTML = `
     <table>
       <thead><tr>
-        <th>模型</th><th>加权方式</th><th>年化收益</th><th>年化波动</th><th>夏普比率</th><th>最大回撤</th><th>胜率</th>
+        <th>模型</th><th>权重方式</th><th>年化收益</th><th>年化波动</th><th>夏普比率</th><th>最大回撤</th><th>胜率</th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
 
-function renderFIChart() {
-  const fi = DATA.feature_importance_top15 || [];
-  if (!fi.length) return;
+// ===== PERF COMPARISON CHART =====
+function renderPerfChart() {
+  const perf = DATA.performance;
+  const filtered = perf.filter(p => {
+    if (p.Model.includes('基准')) return true;
+    return selectedModels.includes(p.Model) && selectedWeights.includes(p.Weight_Method);
+  });
   
-  const features = fi.map(d => d.Feature).reverse();
-  const values = fi.map(d => 16 - (d.Avg_Rank || 0)).reverse();
-  const colors = values.map(v => v > 14 ? '#e74c3c' : '#3498db');
+  const labels = filtered.map(p => `${p.Model} ${p.Weight_Method}`);
+  const sharpe = filtered.map(p => p.夏普比率 || 0);
+  const colors = filtered.map(p => {
+    if (p.Model.includes('基准')) return '#95a5a6';
+    return MODEL_COLORS[p.Model] || '#3498db';
+  });
+  
+  Plotly.newPlot('perf-chart', [{
+    x: labels, y: sharpe, type: 'bar', marker: { color: colors },
+    text: sharpe.map(v => v.toFixed(2)), textposition: 'outside',
+  }], {
+    title: { text: '夏普比率对比', font: { size: 14 } },
+    margin: { t: 40, b: 80 },
+    yaxis: { title: '夏普比率', zeroline: true },
+    xaxis: { tickangle: -30 }
+  }, { responsive: true });
+}
+
+// ===== QUARTERLY RETURNS =====
+function renderQuarterly() {
+  const qr = DATA.quarterly_returns;
+  const quarters = qr.quarters;
+  const traces = [];
+  
+  // Benchmark
+  traces.push({
+    x: quarters, y: qr.benchmark, type: 'scatter', mode: 'lines+markers',
+    name: '基准', line: { color: '#95a5a6', dash: 'dashdot', width: 2 },
+    marker: { symbol: 'diamond', size: 8 }
+  });
+  
+  selectedModels.forEach(m => {
+    const color = MODEL_COLORS[m];
+    selectedWeights.forEach(w => {
+      const key = `${m}_${w}`;
+      if (qr[key]) {
+        traces.push({
+          x: quarters, y: qr[key], type: 'scatter', mode: 'lines+markers',
+          name: `${m} ${w}`, line: { color, dash: w === '等权' ? 'solid' : 'dash', width: 2 },
+          marker: { symbol: w === '等权' ? 'circle' : 'square', size: 7 }
+        });
+      }
+    });
+  });
+  
+  Plotly.newPlot('quarterly-chart', traces, {
+    title: { text: '各季度收益率走势', font: { size: 14 } },
+    xaxis: { title: '季度', dtick: 1 },
+    yaxis: { title: '收益率', tickformat: '.1%', zeroline: true },
+    legend: { font: { size: 9 }, orientation: 'h', y: -0.25 },
+    margin: { t: 40, b: 90 },
+  }, { responsive: true });
+}
+
+// ===== FEATURE IMPORTANCE =====
+function renderFI() {
+  const fi = DATA.feature_importance;
+  const features = fi.map(d => d.Feature.slice(0, 20)).reverse();
+  const values = fi.map(d => 16 - d.Avg_Rank).reverse();
+  const colors = values.map(v => v > 13 ? '#e74c3c' : v > 10 ? '#e67e22' : '#3498db');
   
   Plotly.newPlot('fi-chart', [{
     y: features, x: values, type: 'bar', orientation: 'h',
     marker: { color: colors }, text: values.map(v => v.toFixed(1)), textposition: 'outside'
   }], {
-    title: '综合特征重要性 Top 15 (LR+DT+RF 平均排名)', margin: { t: 40, l: 200 }, xaxis: { title: '综合得分 (16 - 平均排名)' }
+    title: { text: '综合特征重要性 Top 15 (LR+DT+RF平均排名)', font: { size: 14 } },
+    margin: { t: 40, l: 200 },
+    xaxis: { title: '综合得分 (16 - 平均排名)' }
   }, { responsive: true });
 }
 
-function renderSummary() {
-  document.getElementById('summary-content').innerHTML = `
-    <h3 style="margin-bottom:12px">关键发现</h3>
-    <ul style="padding-left:20px;line-height:2">
-      <li>通过4个模型的IC/Rank IC对比，确认最优预测模型</li>
-      <li>观察净值曲线判断等权 vs 预测值加权的优劣</li>
-      <li>如果预测值加权显著优于等权，说明模型预测量级也有信息量</li>
-      <li>特征重要性排名揭示了驱动A股收益的核心因子</li>
-    </ul>
-    <h3 style="margin-top:24px;margin-bottom:12px">注意事项</h3>
-    <ul style="padding-left:20px;line-height:2;color:var(--text-light)">
-      <li>本分析仅供研究参考，不构成投资建议</li>
-      <li>测试期为4个季度，样本量有限</li>
-      <li>未考虑交易成本、流动性、涨跌停限制</li>
-      <li>历史表现不代表未来收益</li>
-    </ul>
-  `;
-}
-
-// Fallback: try to load from external JSON
-async function tryLoadExternal() {
-  const resp = await fetch('../../task06/outputs/dashboard_data.json');
-  if (resp.ok) {
-    const extData = await resp.json();
-    Object.assign(DATA, extData);
-    renderAll();
+// ===== MODEL COMPARISON =====
+function renderCompare() {
+  const models = selectedModels;
+  if (models.length === 0) { document.getElementById('compare-content').innerHTML = '<p style="color:var(--sub)">请选择至少一个模型</p>'; return; }
+  
+  const compare = [
+    ['对比维度', ...models],
+    ['测试IC', ...models.map(m => DATA.test_ic[m].toFixed(4))],
+    ['Rank IC', ...models.map(m => DATA.test_rank_ic[m].toFixed(4))],
+    ['类型', ...models.map(m => MODEL_INFO[m].type)],
+    ['CV结果', ...models.map(m => MODEL_INFO[m].cv)],
+    ['非线性能力', '无', '弱(S型)', '强', '强'],
+    ['过拟合风险', '低', '低', '高', '中'],
+    ['可解释性', '高', '中', '高', '中'],
+  ];
+  
+  let html = '<div style="overflow-x:auto"><table><thead><tr>';
+  compare[0].forEach(h => html += `<th>${h}</th>`);
+  html += '</tr></thead><tbody>';
+  for (let i = 1; i < compare.length; i++) {
+    html += '<tr>';
+    compare[i].forEach((v, j) => {
+      html += j === 0 ? `<td style="font-weight:600">${v}</td>` : `<td>${v}</td>`;
+    });
+    html += '</tr>';
   }
+  html += '</tbody></table></div>';
+  
+  // Best model callout
+  const bestModel = models.reduce((best, m) => {
+    const p = DATA.performance.find(x => x.Model === m && x.Weight_Method === '等权');
+    const b = DATA.performance.find(x => x.Model === best && x.Weight_Method === '等权');
+    return (p && b && p.夏普比率 > b.夏普比率) ? m : best;
+  }, models[0]);
+  
+  const bestPerf = DATA.performance.find(x => x.Model === bestModel && x.Weight_Method === '等权');
+  
+  if (bestPerf) {
+    html += `<div style="margin-top:16px;padding:16px;background:#d5f5e3;border-radius:8px;border-left:4px solid #27ae60">
+      <strong>🏆 推荐模型: ${bestModel}</strong>
+      <span style="margin-left:12px;font-size:13px">
+        等权年化收益 <strong>${(bestPerf.年化收益率*100).toFixed(2)}%</strong> | 
+        夏普 <strong>${bestPerf.夏普比率.toFixed(2)}</strong> | 
+        回撤 <strong>${(bestPerf.最大回撤*100).toFixed(2)}%</strong>
+      </span>
+    </div>`;
+  }
+  
+  document.getElementById('compare-content').innerHTML = html;
 }
 
+// ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
-  loadData();
-  if (!DATA.meta) tryLoadExternal();
+  runBacktest();
 });
 </script>
 </body>
