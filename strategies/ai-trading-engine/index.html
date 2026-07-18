@@ -234,25 +234,17 @@ body {
   <section id="step6" class="step-section highlight">
     <h2 class="step-title"><span class="num">6</span> 预测 & 模型评估</h2>
     <div class="step-body">
-      <h3>7.1 ROC 曲线与 AUC</h3>
-      <p>4 条 ROC 曲线叠加对比，曲线越靠近左上角性能越好。AUC = 0.5 为随机猜测基线。</p>
-      <div class="chart-box" id="chart-roc"></div>
-
-      <h3>7.2 混淆矩阵</h3>
-      <p>展示各模型在测试集上的分类结果：真正例(TP)、真负例(TN)、假正例(FP)、假负例(FN)。</p>
-      <div class="cm-grid">
-        <div class="chart-box-sm" id="chart-cm-0"></div>
-        <div class="chart-box-sm" id="chart-cm-1"></div>
-        <div class="chart-box-sm" id="chart-cm-2"></div>
-        <div class="chart-box-sm" id="chart-cm-3"></div>
-      </div>
-
-      <h3>7.3 综合指标对比</h3>
-      <p style="font-size:12px;color:var(--sub);">从下方下拉菜单选择一个模型，查看该模型在测试集上的全部 5 项指标。</p>
+      <p>用训练好的模型对测试集进行预测。选择下方模型，左侧展示 ROC 曲线，右侧展示混淆矩阵。</p>
       <div style="margin-bottom:10px;">
-        <label for="metrics-model-select" style="font-size:12px;color:var(--sub);margin-right:8px;">选择模型:</label>
-        <select id="metrics-model-select" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:#fff;cursor:pointer;"></select>
+        <label for="eval-model-select" style="font-size:12px;color:var(--sub);margin-right:8px;">选择模型:</label>
+        <select id="eval-model-select" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:#fff;cursor:pointer;"></select>
       </div>
+      <div class="two-col">
+        <div class="chart-box-sm" id="chart-roc"></div>
+        <div class="chart-box-sm" id="chart-cm"></div>
+      </div>
+
+      <h3>7.3 综合指标对比（全部模型）</h3>
       <div class="two-col">
         <div id="metrics-table-container"></div>
         <div class="chart-box-sm" id="chart-metrics-bar"></div>
@@ -433,77 +425,91 @@ Plotly.newPlot('chart-y-trend', [{
   }, PLOTLY_CONFIG);
 })();
 
-// ====== STEP 7: ROC ======
+// ====== STEP 7: ROC + Confusion Matrix (dropdown driven) ======
 (function() {
-  const traces = DATA.roc_data.map(d => ({
-    x: d.fpr, y: d.tpr, type: 'scatter', mode: 'lines',
-    name: d.model + ' (AUC=' + d.auc + ')',
-    line: { color: d.color, width: 2.5 }
-  }));
-  traces.push({
-    x: [0,1], y: [0,1], type: 'scatter', mode: 'lines',
-    name: 'Random (AUC=0.5000)',
-    line: { color: '#999', width: 1, dash: 'dot' }
-  });
-  Plotly.newPlot('chart-roc', traces, {
-    ...LAYOUT_DEFAULTS,
-    title: 'ROC Curves — 4 Model Comparison',
-    xaxis: { title: 'False Positive Rate', range: [0,1] },
-    yaxis: { title: 'True Positive Rate', range: [0,1.05] },
-    legend: { x: 0.55, y: 0.05, font: { size: 10 } }
-  }, PLOTLY_CONFIG);
-})();
-
-// ====== STEP 7: CONFUSION MATRICES (4 individual charts) ======
-(function() {
+  const roc = DATA.roc_data;
   const cms = DATA.confusion_matrices;
-  for (let i = 0; i < cms.length; i++) {
-    const cm = cms[i];
-    const z = [[cm.tn, cm.fp], [cm.fn, cm.tp]];
+  const colors = ['#2c3e50', '#e74c3c', '#3498db', '#e67e22'];
 
-    Plotly.newPlot('chart-cm-' + i, [{
+  // Populate unified dropdown
+  const sel = document.getElementById('eval-model-select');
+  roc.forEach((d, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = d.model + (i === 0 ? ' (Best AUC=' + d.auc + ')' : ' (AUC=' + d.auc + ')');
+    sel.appendChild(opt);
+  });
+
+  function renderROC(i) {
+    Plotly.newPlot('chart-roc', [
+      { x: roc[i].fpr, y: roc[i].tpr, type: 'scatter', mode: 'lines',
+        name: roc[i].model + ' (AUC=' + roc[i].auc + ')',
+        line: { color: colors[i], width: 2.5 }
+      },
+      { x: [0,1], y: [0,1], type: 'scatter', mode: 'lines',
+        name: 'Random (AUC=0.5000)',
+        line: { color: '#999', width: 1, dash: 'dot' }
+      }
+    ], {
+      ...LAYOUT_DEFAULTS,
+      title: { text: 'ROC 曲线 — <b>' + roc[i].model + '</b>', x: 0.5, xanchor: 'center' },
+      xaxis: { title: '假正率 (FPR)', range: [0, 1] },
+      yaxis: { title: '真正率 (TPR)', range: [0, 1.05] },
+      legend: { x: 0.55, y: 0.05, font: { size: 10 } },
+      margin: { l: 60, r: 20, t: 55, b: 55 },
+      height: 380,
+    }, PLOTLY_CONFIG);
+  }
+
+  function renderCM(i) {
+    const cm = cms[i];
+    Plotly.newPlot('chart-cm', [{
       type: 'heatmap',
-      z: z,
+      z: [[cm.tn, cm.fp], [cm.fn, cm.tp]],
       colorscale: [[0, '#e3f2fd'], [1, '#1565c0']],
       showscale: false,
-      xgap: 4, ygap: 4,
-      hovertemplate: '真实:%{y} 预测:%{x}<br>数量:%{z}<extra></extra>',
+      xgap: 5, ygap: 5,
     }], {
       ...LAYOUT_DEFAULTS,
-      title: { text: '<b>' + cm.model + '</b> (Acc=' + cm.accuracy + ')', x: 0.5, xanchor: 'center', font: { size: 13 } },
+      title: { text: '混淆矩阵 — <b>' + cm.model + '</b> (Acc=' + cm.accuracy + ')', x: 0.5, xanchor: 'center' },
       xaxis: {
         tickvals: [0, 1],
         ticktext: ['<span style="color:#27ae60;">预测跌</span>', '<span style="color:#e74c3c;">预测涨</span>'],
-        side: 'bottom',
-        tickfont: { size: 12 }
+        side: 'bottom', tickfont: { size: 12 }
       },
       yaxis: {
         tickvals: [0, 1],
         ticktext: ['<span style="color:#27ae60;">实际跌</span>', '<span style="color:#e74c3c;">实际涨</span>'],
-        autorange: 'reversed',
-        tickfont: { size: 12 }
+        autorange: 'reversed', tickfont: { size: 12 }
       },
       annotations: [
-        { x: 0, y: 0, text: '<b>TN</b><br>' + cm.tn,
-          showarrow: false, font: { size: 14, color: '#333' },
-          xanchor: 'center', yanchor: 'middle' },
-        { x: 1, y: 0, text: '<b>FP</b><br>' + cm.fp,
-          showarrow: false, font: { size: 14, color: '#c0392b' },
-          xanchor: 'center', yanchor: 'middle' },
-        { x: 0, y: 1, text: '<b>FN</b><br>' + cm.fn,
-          showarrow: false, font: { size: 14, color: '#c0392b' },
-          xanchor: 'center', yanchor: 'middle' },
-        { x: 1, y: 1, text: '<b>TP</b><br>' + cm.tp,
-          showarrow: false, font: { size: 14, color: '#fff' },
-          xanchor: 'center', yanchor: 'middle' },
+        { x: 0, y: 0, text: '<b>TN</b><br>' + cm.tn, showarrow: false,
+          font: { size: 14, color: '#333' }, xanchor: 'center', yanchor: 'middle' },
+        { x: 1, y: 0, text: '<b>FP</b><br>' + cm.fp, showarrow: false,
+          font: { size: 14, color: '#c0392b' }, xanchor: 'center', yanchor: 'middle' },
+        { x: 0, y: 1, text: '<b>FN</b><br>' + cm.fn, showarrow: false,
+          font: { size: 14, color: '#c0392b' }, xanchor: 'center', yanchor: 'middle' },
+        { x: 1, y: 1, text: '<b>TP</b><br>' + cm.tp, showarrow: false,
+          font: { size: 14, color: '#fff' }, xanchor: 'center', yanchor: 'middle' },
       ],
       margin: { l: 70, r: 15, t: 55, b: 55 },
-      height: 350,
+      height: 380,
     }, PLOTLY_CONFIG);
   }
+
+  // Initial render (default: first model = best AUC)
+  renderROC(0);
+  renderCM(0);
+
+  // Switch model on dropdown change
+  sel.addEventListener('change', function() {
+    const idx = parseInt(this.value);
+    renderROC(idx);
+    renderCM(idx);
+  });
 })();
 
-// ====== STEP 7: METRICS TABLE & BAR (with dropdown) ======
+// ====== STEP 7: METRICS TABLE & BAR ======
 (function() {
   const m = DATA.metrics;
 
@@ -517,49 +523,22 @@ Plotly.newPlot('chart-y-trend', [{
   html += '</tbody></table>';
   document.getElementById('metrics-table-container').innerHTML = html;
 
-  // Populate dropdown
-  const sel = document.getElementById('metrics-model-select');
-  m.forEach((r, i) => {
-    const opt = document.createElement('option');
-    opt.value = r.model;
-    opt.textContent = r.model + (i === 0 ? ' (Best)' : '');
-    sel.appendChild(opt);
-  });
-
-  // Function: render bar chart for a given model
-  function renderMetricsBar(modelName) {
-    const r = m.find(x => x.model === modelName) || m[0];
-    const metricNames = ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'AUC'];
-    const metricKeys  = ['accuracy', 'precision', 'recall', 'f1', 'auc'];
-    const colors      = ['#3498db', '#9b59b6', '#e67e22', '#e74c3c', '#2ecc71'];
-
-    const traces = metricNames.map((name, i) => ({
-      type: 'bar',
-      x: [name],
-      y: [r[metricKeys[i]]],
-      name: name,
-      marker: { color: colors[i] },
-      text: [r[metricKeys[i]].toFixed(4)],
-      textposition: 'outside',
-      textfont: { size: 12, color: '#1a1a2e' },
-      hovertemplate: name + ': %{y:.4f}<extra></extra>',
-    }));
-
-    Plotly.newPlot('chart-metrics-bar', traces, {
-      ...LAYOUT_DEFAULTS,
-      title: { text: '<b>' + r.model + '</b> — 5 项指标', x: 0.5, xanchor: 'center' },
-      yaxis: { title: 'Score', range: [0, 0.7] },
-      xaxis: { title: '' },
-      showlegend: true,
-      legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.18, font: { size: 10 } },
-      margin: { l: 50, r: 20, t: 50, b: 60 },
-    }, PLOTLY_CONFIG);
-  }
-
-  // Default: best model (first in sorted list)
-  renderMetricsBar(m[0].model);
-  // Update on change
-  sel.addEventListener('change', e => renderMetricsBar(e.target.value));
+  // Grouped bar chart: all 4 models, 3 metrics
+  Plotly.newPlot('chart-metrics-bar', [
+    { type: 'bar', x: m.map(r => r.model), y: m.map(r => r.accuracy),
+      name: 'Accuracy', marker: { color: '#3498db' } },
+    { type: 'bar', x: m.map(r => r.model), y: m.map(r => r.f1),
+      name: 'F1-Score', marker: { color: '#e74c3c' } },
+    { type: 'bar', x: m.map(r => r.model), y: m.map(r => r.auc),
+      name: 'AUC', marker: { color: '#2ecc71' } }
+  ], {
+    ...LAYOUT_DEFAULTS,
+    title: '全部模型 — Accuracy / F1 / AUC',
+    yaxis: { title: 'Score', range: [0.35, 0.62] },
+    legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.2, font: { size: 10 } },
+    margin: { l: 50, r: 20, t: 50, b: 60 },
+    height: 380,
+  }, PLOTLY_CONFIG);
 })();
 
 // ====== STEP 8: FEATURE IMPORTANCE ======
